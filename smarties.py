@@ -3,6 +3,8 @@ from fontTools.ttLib import TTFont
 from fontTools.pens.recordingPen import RecordingPen
 from fontTools.pens.svgPathPen import main as svgMain
 from fontTools.varLib.interpolatable import PerContourPen
+from collections import Counter, defaultdict
+import numpy as np
 from pprint import pprint
 import sys
 
@@ -46,6 +48,26 @@ def decomposeS(S):
     T = Tindex + TBase if Tindex else None
     return (L,V,T)
 
+def contourControls(contour):
+    # Use second byte of the operation name (curveTo, closePath, etc),
+    # as that's unique.
+    return ''.join(op[0][1] for op in contour)
+
+def outlineStructure(outline):
+    return tuple(contourControls(contour) for contour in outline)
+
+def outlineVector(outline):
+    if not outline:
+        return []
+    assert(outline[0][0][0] == "moveTo")
+    initPos = outline[0][0][1][0]
+    vec = []
+    for contour in outline:
+        for op in contour:
+            for x_y in op[1]:
+                vec.append(x_y[0] - initPos[0])
+                vec.append(x_y[1] - initPos[1])
+    return vec
 
 if demoS:
     S = demoS
@@ -55,6 +77,8 @@ if demoS:
 
 
 shapes = {}
+alternates = defaultdict(list)
+split = {}
 
 for u in list(range(LBase, LBase+LCount)) + \
          list(range(VBase, VBase+VCount)) + \
@@ -69,21 +93,52 @@ for S in range(SBase, SBase+SCount):
     if T is None:
         continue # Only doing LVT for now
 
-    if len(shapes[L])+len(shapes[V])+len(shapes[T]) != len(shapes[S]):
-        print("U+%04X: Contour count mismatch; skipping" % S)
+    Llen = len(shapes[L])
+    Vlen = len(shapes[V])
+    Tlen = len(shapes[T])
+    Slen = len(shapes[S])
+    if Llen + Vlen + Tlen != Slen:
+        #print("U+%04X: Contour count mismatch; skipping" % S)
         continue
 
     decomposed = []
     for u in (L, V, T):
         shape = shapes[u]
         component = [len(contour) for contour in shape]
-        print(component)
         decomposed.extend(component)
     composed = [len(contour) for contour in shapes[S]]
-    print(decomposed)
-    print(composed)
     if decomposed != composed:
-        print("U+%04X: Contour operation count mismatch; skipping" % S)
-        continue
+        #print("U+%04X: Contour operation count mismatch; skipping" % S)
+        #continue
+        pass
 
-    print("U+%04X: Good to go" % S)
+    # Chop shape for S into L,V,T components and save to respective lists
+    # Assumption, I know...
+    Sshape = shapes[S]
+    Lshape = Sshape[:Llen]
+    Vshape = Sshape[Llen:Llen+Vlen]
+    Tshape = Sshape[Llen+Vlen:]
+
+    alternates[L].append(Lshape)
+    alternates[V].append(Vshape)
+    alternates[T].append(Tshape)
+    split[S] = (Lshape,Vshape,Tshape)
+
+    #print("U+%04X: Good to go" % S)
+
+for u,alts in sorted(alternates.items()):
+    counter = Counter()
+    sortedAlts = defaultdict(list)
+    for outline in alts:
+        structure = outlineStructure(outline)
+        counter[structure] += 1
+        sortedAlts[structure].append(outlineVector(outline))
+    best = max(counter, key=lambda k: counter[k])
+    print("U+%04X: Best structure matched %d out of %d instances." % (u, counter[best], len(alts)))
+
+    # Build matrix for best structure
+    samples = sortedAlts[best]
+    mat = np.transpose(np.matrix(samples))
+    ret = np.linalg.svd(mat, full_matrices=False)
+    print(ret)
+    break
