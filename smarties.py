@@ -137,9 +137,8 @@ for u,alts in sorted(alternates.items()):
     print("U+%04X: Best structure matched %d out of %d instances." % (u, counter[best], len(alts)))
 
     # Build matrix for best structure
-    samples = sortedAlts[best]
-    mat = np.transpose(np.matrix(samples))
-    u,s,v = np.linalg.svd(mat, full_matrices=False)
+    samples = np.transpose(np.matrix(sortedAlts[best]))
+    u,s,v = np.linalg.svd(samples, full_matrices=False)
 
     # Find number of "masters" to keep
     first = s[0] # Largest singular value
@@ -152,6 +151,6 @@ for u,alts in sorted(alternates.items()):
     s = s[:i]
     v = v[:i,:]
 
-    reconst = np.transpose (np.round(u * np.diag(s) * v))
+    reconst = np.round(u * np.diag(s) * v)
     error = reconst - samples
     print("Num masters %d max error %d" % (i, np.max(error)))
