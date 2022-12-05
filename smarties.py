@@ -139,6 +139,19 @@ for u,alts in sorted(alternates.items()):
     # Build matrix for best structure
     samples = sortedAlts[best]
     mat = np.transpose(np.matrix(samples))
-    ret = np.linalg.svd(mat, full_matrices=False)
-    print(ret)
-    break
+    u,s,v = np.linalg.svd(mat, full_matrices=False)
+
+    # Find number of "masters" to keep
+    first = s[0] # Largest singular value
+    for i in range(len(s)):
+        if s[i] < first / 2048:
+            break
+
+    # Truncate rank to i
+    u = u[:,:i]
+    s = s[:i]
+    v = v[:i,:]
+
+    reconst = np.transpose (np.round(u * np.diag(s) * v))
+    error = reconst - samples
+    print("Num masters %d max error %d" % (i, np.max(error)))
