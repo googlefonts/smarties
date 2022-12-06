@@ -137,20 +137,51 @@ for u,alts in sorted(alternates.items()):
     print("U+%04X: Best structure matched %d out of %d instances." % (u, counter[best], len(alts)))
 
     # Build matrix for best structure
-    samples = np.transpose(np.matrix(sortedAlts[best]))
-    u,s,v = np.linalg.svd(samples, full_matrices=False)
+    samples = sortedAlts[best]
+    mat = np.matrix(samples)
+    u,s,v = np.linalg.svd(mat, full_matrices=False)
 
     # Find number of "masters" to keep
     first = s[0] # Largest singular value
-    for i in range(len(s)):
-        if s[i] < first / 2048:
+    for k in range(len(s)):
+        if s[k] < first / 2048:
             break
 
-    # Truncate rank to i
-    u = u[:,:i]
-    s = s[:i]
-    v = v[:i,:]
+    # Truncate rank to k
+    u = u[:,:k]
+    s = s[:k]
+    v = v[:k,:]
 
     reconst = np.round(u * np.diag(s) * v)
-    error = reconst - samples
-    print("Num masters %d max error %d" % (i, np.max(error)))
+    error = reconst - mat
+    print("Num masters %d max error without rounding masters %d" % (k, np.max(error)))
+
+    # Multiply extracted features by singular values and be done with those values.
+    v = np.diag(s) * v
+    del s
+
+    # v contains the list of shape-like features discovered, one in each row, and
+    # u contains the combination factors of those, one row per sample.
+
+    master = np.matrix(np.shape(v[0]))
+    ## Normalize range of each "axis" to 0-1; This extracts default master, and deltas.
+    for j in range(k):
+        minV = np.min(u[:,j])
+        maxV = np.max(u[:,j])
+        diff = maxV - minV
+        assert diff > 1e-5
+
+        v[j,:] /= minV
+        v[j,:] *= diff
+
+
+
+
+
+
+
+
+
+
+
+
