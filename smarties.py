@@ -54,7 +54,7 @@ def contourControls(contour):
     return ''.join(op[0][1] for op in contour)
 
 def outlineStructure(outline):
-    return tuple(contourControls(contour) for contour in outline)
+    return ''.join(contourControls(contour) for contour in outline)
 
 def outlineVector(outline):
     if not outline:
@@ -68,6 +68,28 @@ def outlineVector(outline):
                 vec.append(x_y[0] - initPos[0])
                 vec.append(x_y[1] - initPos[1])
     return vec
+
+def reconstructRecordingPenValues(structure, vector):
+    # We saved the second char of the operation name; with num args
+    op_map = {
+      "o": ("moveTo", 1),
+      "i": ("lineTo", 1),
+      "C": ("qCurveTo", 2),
+      "u": ("curveTo", 3),
+      "l": ("closePath", 0),
+      "n": ("endPath", 0),
+    }
+    ret = []
+    it = iter(vector)
+    for mnem in structure:
+        op, nArgs = op_map[mnem]
+        args = []
+        for n in range(nArgs):
+            x = next(it)
+            y = next(it)
+            args.append((x,y))
+        ret.append((op, tuple(args)))
+    return ret
 
 if demoS:
     S = demoS
@@ -164,7 +186,7 @@ for u,alts in sorted(alternates.items()):
     # u contains the combination factors of those, one row per sample.
 
     # Normalize range of each "axis" to 0-1; This extracts default master, and deltas.
-    master = np.zeros(np.shape(v[0]))
+    defaultMaster = np.zeros(np.shape(v[0]))
     for j in range(k):
         minV = np.min(u[:,j])
         maxV = np.max(u[:,j])
@@ -174,16 +196,21 @@ for u,alts in sorted(alternates.items()):
         u[:,j] -= minV
         u[:,j] /= diff
 
-        master += v[j,:] * minV
+        defaultMaster += v[j,:] * minV
         v[j,:] *= diff
-    master = np.round(master)
+    defaultMaster = np.round(defaultMaster)
     deltas = np.round(v)
 
-    # Reconstruct again, from master+deltas
-    reconst = master + np.round(u * deltas)
+    # Reconstruct again, from defaultMaster+deltas
+    reconst = defaultMaster + np.round(u * deltas)
     error = reconst - mat
     print("Num masters %d max error with rounding masters %d" % (k, np.max(error)))
 
+    defaultMasterPenValues = reconstructRecordingPenValues(best, defaultMaster.tolist()[0])
+    masters = [defaultMasterPenValues]
+    for delta in deltas:
+        values = reconstructRecordingPenValues(best, (defaultMaster+delta).tolist()[0])
+        masters.append(values)
 
 
 
