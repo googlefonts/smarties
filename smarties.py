@@ -287,7 +287,7 @@ for unicode,alts in sorted(alternates.items()):
     error = reconst - mat
     maxError = np.max(error)
     meanSqError = np.mean(np.square(error))
-    print("Num masters %d max error %d mean-squared error %g" % (k, maxError, meanSqError))
+    print("Num masters %d max error %d mean-squared error %g" % (k+1, maxError, meanSqError))
 
     defaultMasterPenValues = reconstructRecordingPenValues(struct, defaultMaster.tolist()[0])
     masters = [defaultMasterPenValues]
