@@ -166,6 +166,15 @@ for unicode,alts in sorted(alternates.items()):
 
     # Build matrix for best structure
     samples = sortedAlts[best]
+
+    # Remove duplicate samples, keeping order
+    new_samples = {}
+    for sample in samples:
+        sample = tuple(sample)
+        if sample not in new_samples:
+            new_samples[sample] = 1
+    samples = list(new_samples.keys())
+
     mat = np.matrix(samples)
     u,s,v = np.linalg.svd(mat, full_matrices=False)
 
