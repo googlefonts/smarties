@@ -124,7 +124,7 @@ def matchingCost(G, matching):
 def matchOutline(shape, ref):
     assert len(shape) == len(ref)
     if outlineStructure(shape) == outlineStructure(ref):
-        return shape
+        return shape, 0
 
     # Perform a weighted-matching of outlines between shape and ref.
     # If found a perfect-matching, that's our solution.
@@ -139,15 +139,16 @@ def matchOutline(shape, ref):
             row.append(contourDiff(c1, c2))
     rows, cols = linear_sum_assignment(G)
     assert (rows == list(range(len(rows)))).all()
-    if matchingCost(G, cols) >= 1e10:
-        return None
+    cost = matchingCost(G, cols)
+    if cost >= 1e10:
+        return None, cost
 
     # We have a matching. Reorder contours and return
     reordered = []
     for c in cols:
         reordered.append(shape[c])
 
-    return reordered
+    return reordered, cost
 
 
 
@@ -189,7 +190,9 @@ for weight in (100, 1000):
             continue
 
         Sshape = shapes[S]
-        matched = False
+        bestCost = 1e10
+        bestOrder = None
+        bestOutlines = None
         for order in permutations((L,V,T)):
             # Chop shape for S into L,V,T components and save to respective lists
             # Assumption, I know...
@@ -200,17 +203,19 @@ for weight in (100, 1000):
             shape1 = Sshape[len0:len0+len1]
             shape2 = Sshape[len0+len1:]
 
-            matchedOutline0 = matchOutline(shape0, shapes[order[0]])
-            matchedOutline1 = matchOutline(shape1, shapes[order[1]])
-            matchedOutline2 = matchOutline(shape2, shapes[order[2]])
-            if matchedOutline0 and matchedOutline1 and matchedOutline2:
-                alternates[order[0]].append(matchedOutline0)
-                alternates[order[1]].append(matchedOutline1)
-                alternates[order[2]].append(matchedOutline2)
-                matched = True
-                break
+            matchedOutline0,cost0 = matchOutline(shape0, shapes[order[0]])
+            matchedOutline1,cost1 = matchOutline(shape1, shapes[order[1]])
+            matchedOutline2,cost2 = matchOutline(shape2, shapes[order[2]])
+            if matchedOutline0 and matchedOutline1 and matchedOutline2 and \
+               cost0 + cost1 + cost2 < bestCost:
+               bestOrder = order
+               bestCost = cost0 + cost1 + cost2
+               bestOutlines = matchedOutline0,matchedOutline1,matchedOutline2
 
-        if matched:
+        if bestOrder:
+            alternates[bestOrder[0]].append(bestOutlines[0])
+            alternates[bestOrder[1]].append(bestOutlines[1])
+            alternates[bestOrder[2]].append(bestOutlines[2])
             num_matched += 1
         else:
             not_matched += 1
