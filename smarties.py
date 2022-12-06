@@ -96,7 +96,7 @@ def reconstructRecordingPenValues(structure, vector):
 def contourVector(c):
     rPen = RecordingPen()
     rPen.value = c
-    stats = StatisticsPen(glyphset=glyphset)
+    stats = StatisticsPen()
     rPen.replay(stats)
     size = abs(stats.area) ** 0.5 * 0.5
     return (
