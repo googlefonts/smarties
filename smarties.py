@@ -241,6 +241,7 @@ for unicode,alts in sorted(alternates.items()):
         width = upem * len(SVGs)
         print('<?xml version="1.0" encoding="UTF-8"?>', file=fd)
         print('<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">' % (width*scale, (ascent-descent)*scale), file=fd)
+        print('<rect width="100%" height="100%" fill="white"/>', file=fd)
         width = upem*.5
         for commands in SVGs:
             s = '<g transform="translate(%d %d) scale(%g -%g)"><path d="%s"/></g>' % (width*scale, ascent*.5*scale, scale, scale, commands)
