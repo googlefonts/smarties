@@ -267,7 +267,7 @@ for unicode,alts in sorted(alternates.items()):
         minV = np.min(u[:,j])
         maxV = np.max(u[:,j])
         diff = maxV - minV
-        assert diff > 1e-5
+        assert diff > 1e-3
 
         u[:,j] -= minV
         u[:,j] /= diff
