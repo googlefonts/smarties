@@ -5,6 +5,7 @@ from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.svgPathPen import main as svgMain
 from fontTools.varLib.interpolatable import PerContourPen
 from collections import Counter, defaultdict
+from itertools import permutations
 import numpy as np
 import math
 from pprint import pprint
@@ -106,7 +107,6 @@ alternates = defaultdict(list)
 
 for weight in (100, 1000):
     shapes = {}
-    split = {}
     glyphset = font.getGlyphSet(location={'wght':weight})
     for u in list(range(LBase, LBase+LCount)) + \
              list(range(VBase, VBase+VCount)) + \
@@ -129,43 +129,34 @@ for weight in (100, 1000):
             #print("U+%04X: Contour count mismatch; skipping" % S)
             continue
 
-        decomposed = []
-        for u in (L, V, T):
-            shape = shapes[u]
-            component = [len(contour) for contour in shape]
-            decomposed.extend(component)
         composed = [len(contour) for contour in shapes[S]]
-        if decomposed != composed:
-            #print("U+%04X: Contour operation count mismatch; skipping" % S)
-            #continue
-            pass
-
-        # Chop shape for S into L,V,T components and save to respective lists
-        # Assumption, I know...
         Sshape = shapes[S]
-        Lshape = Sshape[:Llen]
-        Vshape = Sshape[Llen:Llen+Vlen]
-        Tshape = Sshape[Llen+Vlen:]
+        for order in permutations((L,V,T)):
+            # Chop shape for S into L,V,T components and save to respective lists
+            # Assumption, I know...
+            len0 = len(shapes[order[0]])
+            len1 = len(shapes[order[1]])
+            len2 = len(shapes[order[2]])
+            shape0 = Sshape[:len0]
+            shape1 = Sshape[len0:len0+len1]
+            shape2 = Sshape[len0+len1:]
 
-        alternates[L].append(Lshape)
-        alternates[V].append(Vshape)
-        alternates[T].append(Tshape)
-        split[S] = (Lshape,Vshape,Tshape)
+            if outlineStructure(shape0) == outlineStructure(shapes[order[0]]):
+                alternates[order[0]].append(shape0)
+            if outlineStructure(shape1) == outlineStructure(shapes[order[1]]):
+                alternates[order[1]].append(shape1)
+            if outlineStructure(shape2) == outlineStructure(shapes[order[2]]):
+                alternates[order[2]].append(shape2)
 
         #print("U+%04X: Good to go" % S)
 
 for unicode,alts in sorted(alternates.items()):
-    counter = Counter()
-    sortedAlts = defaultdict(list)
-    for outline in alts:
-        structure = outlineStructure(outline)
-        counter[structure] += 1
-        sortedAlts[structure].append(outlineVector(outline))
-    best = max(counter, key=lambda k: counter[k])
-    print("U+%04X: Best structure matched %d out of %d instances." % (unicode, counter[best], len(alts)))
+    print("U+%04X: Structure matched %d." % (unicode, len(alts)))
 
-    # Build matrix for best structure
-    samples = sortedAlts[best]
+    struct = outlineStructure(alts[0])
+    samples = []
+    for alt in alts:
+        samples.append(outlineVector(alt))
 
     # Remove duplicate samples, keeping order
     new_samples = {}
@@ -222,10 +213,10 @@ for unicode,alts in sorted(alternates.items()):
     error = reconst - mat
     print("Num masters %d max error with rounding masters %d" % (k, np.max(error)))
 
-    defaultMasterPenValues = reconstructRecordingPenValues(best, defaultMaster.tolist()[0])
+    defaultMasterPenValues = reconstructRecordingPenValues(struct, defaultMaster.tolist()[0])
     masters = [defaultMasterPenValues]
     for delta in deltas:
-        values = reconstructRecordingPenValues(best, (defaultMaster+delta).tolist()[0])
+        values = reconstructRecordingPenValues(struct, (defaultMaster+delta).tolist()[0])
         masters.append(values)
 
     instances = []
@@ -233,7 +224,7 @@ for unicode,alts in sorted(alternates.items()):
         instance = np.matrix(defaultMaster)
         for scalar,delta in zip(scalars.tolist()[0],deltas):
             instance += scalar * delta
-        values = reconstructRecordingPenValues(best, instance.tolist()[0])
+        values = reconstructRecordingPenValues(struct, instance.tolist()[0])
         instances.append(values)
 
     SVGs = []
