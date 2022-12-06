@@ -13,6 +13,10 @@ import math
 from pprint import pprint
 import sys
 
+if len(sys.argv) < 2:
+    print("usage: python smarties.py SourceHanSerif-VF.otf")
+    sys.exit(1)
+
 fontfile = sys.argv[1]
 count = None
 demoS = None
