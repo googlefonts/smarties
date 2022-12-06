@@ -163,16 +163,26 @@ for u,alts in sorted(alternates.items()):
     # v contains the list of shape-like features discovered, one in each row, and
     # u contains the combination factors of those, one row per sample.
 
-    master = np.matrix(np.shape(v[0]))
-    ## Normalize range of each "axis" to 0-1; This extracts default master, and deltas.
+    # Normalize range of each "axis" to 0-1; This extracts default master, and deltas.
+    master = np.zeros(np.shape(v[0]))
     for j in range(k):
         minV = np.min(u[:,j])
         maxV = np.max(u[:,j])
         diff = maxV - minV
         assert diff > 1e-5
 
-        v[j,:] /= minV
+        u[:,j] -= minV
+        u[:,j] /= diff
+
+        master += v[j,:] * minV
         v[j,:] *= diff
+    master = np.round(master)
+    deltas = np.round(v)
+
+    # Reconstruct again, from master+deltas
+    reconst = master + np.round(u * deltas)
+    error = reconst - mat
+    print("Num masters %d max error with rounding masters %d" % (k, np.max(error)))
 
 
 
