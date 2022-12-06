@@ -212,7 +212,6 @@ for unicode,alts in sorted(alternates.items()):
         u[:,j] /= diff
 
         defaultMaster += v[j,:] * minV
-        v[j,:] -= v[j,:] * minV
         v[j,:] *= diff
 
     defaultMaster = np.round(defaultMaster)
