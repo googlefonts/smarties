@@ -300,22 +300,15 @@ for unicode,alts in sorted(alternates.items()):
         instances.append(values)
 
     masterSVGs = []
-    for image in masters:
-        rPen = RecordingPen()
-        rPen.value = image
-        pen = SVGPathPen(glyphset)
-        rPen.replay(pen)
-        commands = pen.getCommands()
-        masterSVGs.append(commands)
-
     instanceSVGs = []
-    for image in instances:
-        rPen = RecordingPen()
-        rPen.value = image
-        pen = SVGPathPen(glyphset)
-        rPen.replay(pen)
-        commands = pen.getCommands()
-        instanceSVGs.append(commands)
+    for data,SVGs in ((masters,masterSVGs), (instances,instanceSVGs)):
+        for image in data:
+            rPen = RecordingPen()
+            rPen.value = image
+            pen = SVGPathPen(glyphset)
+            rPen.replay(pen)
+            commands = pen.getCommands()
+            SVGs.append(commands)
 
     scale = .1
     with open("U+%04X.svg" % unicode, "w") as fd:
@@ -328,18 +321,12 @@ for unicode,alts in sorted(alternates.items()):
         print('<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">' % (width*scale, height*scale), file=fd)
         print('<rect width="100%" height="100%" fill="white"/>', file=fd)
         y = 0
-        for i,commands in enumerate(masterSVGs):
-            if i % cols == 0:
-                y += upem
-                x = upem
-            s = '<g transform="translate(%d %d) scale(%g -%g)"><path d="%s"/></g>' % (x*scale, y*scale, scale, scale, commands)
-            print(s, file=fd)
-            x += upem
-        for i,commands in enumerate(instanceSVGs):
-            if i % cols == 0:
-                y += upem
-                x = upem
-            s = '<g transform="translate(%d %d) scale(%g -%g)"><path d="%s"/></g>' % (x*scale, y*scale, scale, scale, commands)
-            print(s, file=fd)
-            x += upem
+        for SVGs in (masterSVGs, instanceSVGs):
+            for i,commands in enumerate(SVGs):
+                if i % cols == 0:
+                    y += upem
+                    x = upem
+                s = '<g transform="translate(%d %d) scale(%g -%g)"><path d="%s"/></g>' % (x*scale, y*scale, scale, scale, commands)
+                print(s, file=fd)
+                x += upem
         print('</svg>', file=fd)
