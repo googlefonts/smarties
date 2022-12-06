@@ -299,27 +299,43 @@ for unicode,alts in sorted(alternates.items()):
         values = reconstructRecordingPenValues(struct, instance.tolist()[0])
         instances.append(values)
 
-    SVGs = []
+    masterSVGs = []
+    for image in masters:
+        rPen = RecordingPen()
+        rPen.value = image
+        pen = SVGPathPen(glyphset)
+        rPen.replay(pen)
+        commands = pen.getCommands()
+        masterSVGs.append(commands)
+
+    instanceSVGs = []
     for image in instances:
         rPen = RecordingPen()
         rPen.value = image
         pen = SVGPathPen(glyphset)
         rPen.replay(pen)
         commands = pen.getCommands()
-        SVGs.append(commands)
+        instanceSVGs.append(commands)
 
     scale = .1
     with open("U+%04X.svg" % unicode, "w") as fd:
 
         cols = 16
         width = upem * (cols + 1)
-        height = upem * (math.ceil(len(SVGs) / cols) + 1)
+        height = upem * (math.ceil(len(masterSVGs) / cols) + math.ceil(len(instanceSVGs) / cols) + 1)
 
         print('<?xml version="1.0" encoding="UTF-8"?>', file=fd)
         print('<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">' % (width*scale, height*scale), file=fd)
         print('<rect width="100%" height="100%" fill="white"/>', file=fd)
         y = 0
-        for i,commands in enumerate(SVGs):
+        for i,commands in enumerate(masterSVGs):
+            if i % cols == 0:
+                y += upem
+                x = upem
+            s = '<g transform="translate(%d %d) scale(%g -%g)"><path d="%s"/></g>' % (x*scale, y*scale, scale, scale, commands)
+            print(s, file=fd)
+            x += upem
+        for i,commands in enumerate(instanceSVGs):
             if i % cols == 0:
                 y += upem
                 x = upem
