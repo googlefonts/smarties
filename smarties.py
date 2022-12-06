@@ -299,9 +299,16 @@ for unicode,alts in sorted(alternates.items()):
         values = reconstructRecordingPenValues(struct, instance.tolist()[0])
         instances.append(values)
 
+
+    originals = []
+    for sample in samples:
+        values = reconstructRecordingPenValues(struct, sample)
+        originals.append(values)
+
     masterSVGs = []
     instanceSVGs = []
-    for data,SVGs in ((masters,masterSVGs), (instances,instanceSVGs)):
+    origSVGs = []
+    for data,SVGs in ((masters,masterSVGs), (instances,instanceSVGs), (originals,origSVGs)):
         for image in data:
             rPen = RecordingPen()
             rPen.value = image
@@ -321,12 +328,20 @@ for unicode,alts in sorted(alternates.items()):
         print('<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">' % (width*scale, height*scale), file=fd)
         print('<rect width="100%" height="100%" fill="white"/>', file=fd)
         y = 0
-        for SVGs in (masterSVGs, instanceSVGs):
-            for i,commands in enumerate(SVGs):
-                if i % cols == 0:
-                    y += upem
-                    x = upem
-                s = '<g transform="translate(%d %d) scale(%g -%g)"><path d="%s"/></g>' % (x*scale, y*scale, scale, scale, commands)
-                print(s, file=fd)
-                x += upem
+        for i,commands in enumerate(masterSVGs):
+            if i % cols == 0:
+                y += upem
+                x = upem
+            s = '<g fill="green" transform="translate(%d %d) scale(%g -%g)"><path d="%s"/></g>' % (x*scale, y*scale, scale, scale, commands)
+            print(s, file=fd)
+            x += upem
+        for i,(origCommands,instCommands) in enumerate(zip(origSVGs,instanceSVGs)):
+            if i % cols == 0:
+                y += upem
+                x = upem
+            s = '<g fill="red" transform="translate(%d %d) scale(%g -%g)"><path d="%s"/></g>' % (x*scale, y*scale, scale, scale, origCommands)
+            s += '\n'
+            s += '<g fill="black" opacity=".8" transform="translate(%d %d) scale(%g -%g)"><path d="%s"/></g>' % (x*scale, y*scale, scale, scale, instCommands)
+            print(s, file=fd)
+            x += upem
         print('</svg>', file=fd)
