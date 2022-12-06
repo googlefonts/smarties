@@ -24,7 +24,6 @@ upem = font['head'].unitsPerEm
 hhea = font['hhea']
 ascent, descent = hhea.ascent, hhea.descent
 cmap = font['cmap'].getBestCmap()
-glyphset = font.getGlyphSet()
 
 LBase = 0x1100
 VBase = 0x1161
@@ -102,55 +101,57 @@ if demoS:
     sys.exit(0)
 
 
-shapes = {}
 alternates = defaultdict(list)
-split = {}
 
-for u in list(range(LBase, LBase+LCount)) + \
-         list(range(VBase, VBase+VCount)) + \
-         list(range(TBase+1, TBase+TCount)) + \
-         list(range(SBase, SBase+SCount)):
-    pen = PerContourPen(RecordingPen)
-    glyphset[cmap[u]].draw(pen)
-    shapes[u] = [recPen.value for recPen in pen.value]
+for weight in (100, 1000):
+    shapes = {}
+    split = {}
+    glyphset = font.getGlyphSet(location={'wght':weight})
+    for u in list(range(LBase, LBase+LCount)) + \
+             list(range(VBase, VBase+VCount)) + \
+             list(range(TBase+1, TBase+TCount)) + \
+             list(range(SBase, SBase+SCount)):
+        pen = PerContourPen(RecordingPen)
+        glyphset[cmap[u]].draw(pen)
+        shapes[u] = [recPen.value for recPen in pen.value]
 
-for S in range(SBase, SBase+SCount):
-    L,V,T = decomposeS(S)
-    if T is None:
-        continue # Only doing LVT for now
+    for S in range(SBase, SBase+SCount):
+        L,V,T = decomposeS(S)
+        if T is None:
+            continue # Only doing LVT for now
 
-    Llen = len(shapes[L])
-    Vlen = len(shapes[V])
-    Tlen = len(shapes[T])
-    Slen = len(shapes[S])
-    if Llen + Vlen + Tlen != Slen:
-        #print("U+%04X: Contour count mismatch; skipping" % S)
-        continue
+        Llen = len(shapes[L])
+        Vlen = len(shapes[V])
+        Tlen = len(shapes[T])
+        Slen = len(shapes[S])
+        if Llen + Vlen + Tlen != Slen:
+            #print("U+%04X: Contour count mismatch; skipping" % S)
+            continue
 
-    decomposed = []
-    for u in (L, V, T):
-        shape = shapes[u]
-        component = [len(contour) for contour in shape]
-        decomposed.extend(component)
-    composed = [len(contour) for contour in shapes[S]]
-    if decomposed != composed:
-        #print("U+%04X: Contour operation count mismatch; skipping" % S)
-        #continue
-        pass
+        decomposed = []
+        for u in (L, V, T):
+            shape = shapes[u]
+            component = [len(contour) for contour in shape]
+            decomposed.extend(component)
+        composed = [len(contour) for contour in shapes[S]]
+        if decomposed != composed:
+            #print("U+%04X: Contour operation count mismatch; skipping" % S)
+            #continue
+            pass
 
-    # Chop shape for S into L,V,T components and save to respective lists
-    # Assumption, I know...
-    Sshape = shapes[S]
-    Lshape = Sshape[:Llen]
-    Vshape = Sshape[Llen:Llen+Vlen]
-    Tshape = Sshape[Llen+Vlen:]
+        # Chop shape for S into L,V,T components and save to respective lists
+        # Assumption, I know...
+        Sshape = shapes[S]
+        Lshape = Sshape[:Llen]
+        Vshape = Sshape[Llen:Llen+Vlen]
+        Tshape = Sshape[Llen+Vlen:]
 
-    alternates[L].append(Lshape)
-    alternates[V].append(Vshape)
-    alternates[T].append(Tshape)
-    split[S] = (Lshape,Vshape,Tshape)
+        alternates[L].append(Lshape)
+        alternates[V].append(Vshape)
+        alternates[T].append(Tshape)
+        split[S] = (Lshape,Vshape,Tshape)
 
-    #print("U+%04X: Good to go" % S)
+        #print("U+%04X: Good to go" % S)
 
 for unicode,alts in sorted(alternates.items()):
     counter = Counter()
@@ -201,6 +202,7 @@ for unicode,alts in sorted(alternates.items()):
         u[:,j] /= diff
 
         defaultMaster += v[j,:] * minV
+        v[j,:] -= v[j,:] * minV
         v[j,:] *= diff
 
     defaultMaster = np.round(defaultMaster)
@@ -217,28 +219,34 @@ for unicode,alts in sorted(alternates.items()):
         values = reconstructRecordingPenValues(best, (defaultMaster+delta).tolist()[0])
         masters.append(values)
 
-    masterSVGs = []
-    for master in masters:
+    instances = []
+    for scalars in u:
+        instance = np.matrix(defaultMaster)
+        for scalar,delta in zip(scalars.tolist()[0],deltas):
+            instance += scalar * delta
+        values = reconstructRecordingPenValues(best, instance.tolist()[0])
+        instances.append(values)
+
+    SVGs = []
+    for image in instances:
         rPen = RecordingPen()
-        rPen.value = master
+        rPen.value = image
         pen = SVGPathPen(glyphset)
         rPen.replay(pen)
         commands = pen.getCommands()
-        masterSVGs.append(commands)
+        SVGs.append(commands)
 
+    scale = .1
     with open("U+%04X.svg" % unicode, "w") as fd:
-        width = upem * len(masters)
+        width = upem * len(SVGs)
         print('<?xml version="1.0" encoding="UTF-8"?>', file=fd)
-        print('<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">' % (width, ascent-descent), file=fd)
+        print('<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">' % (width*scale, (ascent-descent)*scale), file=fd)
         width = upem*.5
-        for commands in masterSVGs:
-            s = '<g transform="translate(%d %d) scale(1 -1)"><path d="%s"/></g>' % (width, ascent*.5, commands)
+        for commands in SVGs:
+            s = '<g transform="translate(%d %d) scale(%g -%g)"><path d="%s"/></g>' % (width*scale, ascent*.5*scale, scale, scale, commands)
             print(s, file=fd)
             width += upem
         print('</svg>', file=fd)
-
-
-
 
 
 
