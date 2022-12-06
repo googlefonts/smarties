@@ -146,7 +146,7 @@ def matchOutline(shape, ref):
     assert (rows == list(range(len(rows)))).all()
     cost = matchingCost(G, cols)
     if cost >= 1e10:
-        return None, cost
+        return None, 1e10
 
     # We have a matching. Reorder contours and return
     reordered = []
@@ -215,9 +215,6 @@ for weight in (100, 1000):
                bestOrder = order
                bestCost = cost0 + cost1 + cost2
                bestOutlines = matchedOutline0,matchedOutline1,matchedOutline2
-            elif [cost0, cost1, cost2].count(1e10) == 1:
-                #print("%04X: Might be able to recover." % S)
-                pass
 
         if bestOrder:
             alternates[bestOrder[0]].append(bestOutlines[0])
