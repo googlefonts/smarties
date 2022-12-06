@@ -255,9 +255,11 @@ for unicode,alts in sorted(alternates.items()):
     s = s[:k]
     v = v[:k,:]
 
-    #reconst = np.round(u * np.diag(s) * v)
-    #error = reconst - mat
-    #print("Num masters %d max error without rounding masters %d" % (k, np.max(error)))
+    reconst = np.round(u * np.diag(s) * v)
+    error = reconst - mat
+    maxError = np.max(error)
+    meanSqError = np.mean(np.square(error))
+    #print("Num masters %d max error %d mean-squared error %g" % (k, maxError, meanSqError))
 
     # Multiply extracted features by singular values and be done with those values.
     v = np.diag(s) * v
@@ -286,7 +288,9 @@ for unicode,alts in sorted(alternates.items()):
     # Reconstruct again, from defaultMaster+deltas
     reconst = defaultMaster + u * deltas
     error = reconst - mat
-    print("Num masters %d max error with rounding masters %d" % (k, np.max(error)))
+    maxError = np.max(error)
+    meanSqError = np.mean(np.square(error))
+    print("Num masters %d max error %d mean-squared error %g" % (k, maxError, meanSqError))
 
     defaultMasterPenValues = reconstructRecordingPenValues(struct, defaultMaster.tolist()[0])
     masters = [defaultMasterPenValues]
