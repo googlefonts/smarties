@@ -206,11 +206,13 @@ for weight in (100, 1000):
             matchedOutline0,cost0 = matchOutline(shape0, shapes[order[0]])
             matchedOutline1,cost1 = matchOutline(shape1, shapes[order[1]])
             matchedOutline2,cost2 = matchOutline(shape2, shapes[order[2]])
-            if matchedOutline0 and matchedOutline1 and matchedOutline2 and \
-               cost0 + cost1 + cost2 < bestCost:
+            if cost0 + cost1 + cost2 < bestCost:
                bestOrder = order
                bestCost = cost0 + cost1 + cost2
                bestOutlines = matchedOutline0,matchedOutline1,matchedOutline2
+            elif [cost0, cost1, cost2].count(1e10) == 1:
+                #print("%04X: Might be able to recover." % S)
+                pass
 
         if bestOrder:
             alternates[bestOrder[0]].append(bestOutlines[0])
