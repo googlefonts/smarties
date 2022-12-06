@@ -161,6 +161,9 @@ if demoS:
 alternates = defaultdict(list)
 
 for weight in (100, 1000):
+    mismatch  = 0
+    num_matched = 0
+    not_matched = 0
     shapes = {}
     glyphset = font.getGlyphSet(location={'wght':weight})
     for u in list(range(LBase, LBase+LCount)) + \
@@ -182,19 +185,8 @@ for weight in (100, 1000):
         Slen = len(shapes[S])
         if Llen + Vlen + Tlen != Slen:
             #print("U+%04X: Contour count mismatch; skipping" % S)
+            mismatch += 1
             continue
-
-        composed = [len(contour) for contour in shapes[S]]
-        decomposed = []
-        for u in (L, V, T):
-            shape = shapes[u]
-            component = [len(contour) for contour in shape]
-            #print(component)
-            decomposed.extend(component)
-        if composed != decomposed:
-            #print(composed)
-            #print(decomposed)
-            pass
 
         Sshape = shapes[S]
         matched = False
@@ -218,7 +210,12 @@ for weight in (100, 1000):
                 matched = True
                 break
 
-        print("U+%04X: matched " % S, matched)
+        if matched:
+            num_matched += 1
+        else:
+            not_matched += 1
+
+    print("matched: %d not matched: %d mismatch: %d " % (num_matched, not_matched, mismatch))
 
 for unicode,alts in sorted(alternates.items()):
     print("U+%04X: Structure matched %d." % (unicode, len(alts)))
