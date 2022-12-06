@@ -118,8 +118,12 @@ def matchingCost(G, matching):
 
 def matchOutline(shape, ref):
     assert len(shape) == len(ref)
-    if outlineStructure(shape) == outlineStructure(ref):
-        return shape, 0
+
+    # Shortcut: If structures match assume it's correct.
+    # Although if order is wrong matching can recover the
+    # correct order...
+    #if outlineStructure(shape) == outlineStructure(ref):
+    #    return shape, 0
 
     # Perform a weighted-matching of outlines between shape and ref.
     # If found a perfect-matching, that's our solution.
