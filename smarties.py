@@ -5,12 +5,11 @@ from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.svgPathPen import main as svgMain
 from fontTools.pens.statisticsPen import StatisticsPen
 from fontTools.varLib.interpolatable import PerContourPen
-from collections import Counter, defaultdict
+from collections import defaultdict
 from itertools import permutations
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 import math
-from pprint import pprint
 import sys
 
 if len(sys.argv) < 2:
