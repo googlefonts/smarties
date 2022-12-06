@@ -219,7 +219,7 @@ for unicode,alts in sorted(alternates.items()):
     deltas = np.round(v)
 
     # Reconstruct again, from defaultMaster+deltas
-    reconst = defaultMaster + np.round(u * deltas)
+    reconst = defaultMaster + u * deltas
     error = reconst - mat
     print("Num masters %d max error with rounding masters %d" % (k, np.max(error)))
 
