@@ -3,10 +3,12 @@ from fontTools.ttLib import TTFont
 from fontTools.pens.recordingPen import RecordingPen
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.svgPathPen import main as svgMain
+from fontTools.pens.statisticsPen import StatisticsPen
 from fontTools.varLib.interpolatable import PerContourPen
 from collections import Counter, defaultdict
 from itertools import permutations
 import numpy as np
+from scipy.optimize import linear_sum_assignment
 import math
 from pprint import pprint
 import sys
@@ -53,13 +55,13 @@ def decomposeS(S):
     T = Tindex + TBase if Tindex else None
     return (L,V,T)
 
-def contourControls(contour):
+def contourStructure(contour):
     # Use second byte of the operation name (curveTo, closePath, etc),
     # as that's unique.
     return ''.join(op[0][1] for op in contour)
 
 def outlineStructure(outline):
-    return ''.join(contourControls(contour) for contour in outline)
+    return ''.join(contourStructure(contour) for contour in outline)
 
 def outlineVector(outline):
     if not outline:
@@ -96,6 +98,59 @@ def reconstructRecordingPenValues(structure, vector):
         ret.append((op, tuple(args)))
     return ret
 
+def contourDiff(c1, c2):
+    vecs = []
+    for c in (c1, c2):
+        rPen = RecordingPen()
+        rPen.value = c
+        stats = StatisticsPen(glyphset=glyphset)
+        rPen.replay(stats)
+        size = abs(stats.area) ** 0.5 * 0.5
+        vector = (
+            int(size),
+            int(stats.meanX),
+            int(stats.meanY),
+            int(stats.stddevX * 2),
+            int(stats.stddevY * 2),
+            int(stats.correlation * size),
+        )
+        vecs.append(np.array(vector))
+    diff = vecs[0] - vecs[1]
+    return np.dot(diff, diff)
+
+def matchingCost(G, matching):
+    return sum(G[i][j] for i, j in enumerate(matching))
+
+def matchOutline(shape, ref):
+    assert len(shape) == len(ref)
+    if outlineStructure(shape) == outlineStructure(ref):
+        return shape
+
+    # Perform a weighted-matching of outlines between shape and ref.
+    # If found a perfect-matching, that's our solution.
+    G = []
+    for c1 in ref:
+        row = []
+        G.append(row)
+        for c2 in shape:
+            if contourStructure(c1) != contourStructure(c2):
+                row.append(1e10)
+                continue
+            row.append(contourDiff(c1, c2))
+    rows, cols = linear_sum_assignment(G)
+    assert (rows == list(range(len(rows)))).all()
+    if matchingCost(G, cols) >= 1e10:
+        return None
+
+    # We have a matching. Reorder contours and return
+    reordered = []
+    for c in cols:
+        reordered.append(shape[c])
+
+    return reordered
+
+
+
 if demoS:
     S = demoS
     L,V,T = decomposeS(S)
@@ -130,8 +185,19 @@ for weight in (100, 1000):
             continue
 
         composed = [len(contour) for contour in shapes[S]]
+        decomposed = []
+        for u in (L, V, T):
+            shape = shapes[u]
+            component = [len(contour) for contour in shape]
+            #print(component)
+            decomposed.extend(component)
+        if composed != decomposed:
+            #print(composed)
+            #print(decomposed)
+            pass
+
         Sshape = shapes[S]
-        matched = 0
+        matched = False
         for order in permutations((L,V,T)):
             # Chop shape for S into L,V,T components and save to respective lists
             # Assumption, I know...
@@ -142,17 +208,17 @@ for weight in (100, 1000):
             shape1 = Sshape[len0:len0+len1]
             shape2 = Sshape[len0+len1:]
 
-            if outlineStructure(shape0) == outlineStructure(shapes[order[0]]):
-                alternates[order[0]].append(shape0)
-                matched += 1
-            if outlineStructure(shape1) == outlineStructure(shapes[order[1]]):
-                alternates[order[1]].append(shape1)
-                matched += 1
-            if outlineStructure(shape2) == outlineStructure(shapes[order[2]]):
-                alternates[order[2]].append(shape2)
-                matched += 1
+            matchedOutline0 = matchOutline(shape0, shapes[order[0]])
+            matchedOutline1 = matchOutline(shape1, shapes[order[1]])
+            matchedOutline2 = matchOutline(shape2, shapes[order[2]])
+            if matchedOutline0 and matchedOutline1 and matchedOutline2:
+                alternates[order[0]].append(matchedOutline0)
+                alternates[order[1]].append(matchedOutline1)
+                alternates[order[2]].append(matchedOutline2)
+                matched = True
+                break
 
-        print("U+%04X: matched %d" % (S, matched))
+        print("U+%04X: matched " % S, matched)
 
 for unicode,alts in sorted(alternates.items()):
     print("U+%04X: Structure matched %d." % (unicode, len(alts)))
