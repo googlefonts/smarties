@@ -131,6 +131,7 @@ for weight in (100, 1000):
 
         composed = [len(contour) for contour in shapes[S]]
         Sshape = shapes[S]
+        matched = 0
         for order in permutations((L,V,T)):
             # Chop shape for S into L,V,T components and save to respective lists
             # Assumption, I know...
@@ -143,12 +144,15 @@ for weight in (100, 1000):
 
             if outlineStructure(shape0) == outlineStructure(shapes[order[0]]):
                 alternates[order[0]].append(shape0)
+                matched += 1
             if outlineStructure(shape1) == outlineStructure(shapes[order[1]]):
                 alternates[order[1]].append(shape1)
+                matched += 1
             if outlineStructure(shape2) == outlineStructure(shapes[order[2]]):
                 alternates[order[2]].append(shape2)
+                matched += 1
 
-        #print("U+%04X: Good to go" % S)
+        print("U+%04X: matched %d" % (S, matched))
 
 for unicode,alts in sorted(alternates.items()):
     print("U+%04X: Structure matched %d." % (unicode, len(alts)))
