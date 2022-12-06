@@ -170,7 +170,7 @@ for unicode,alts in sorted(alternates.items()):
     # Find number of "masters" to keep
     first = s[0] # Largest singular value
     for k in range(len(s)):
-        if s[k] < first / 2048:
+        if s[k] < first / 100:
             break
 
     # Truncate rank to k
@@ -202,6 +202,7 @@ for unicode,alts in sorted(alternates.items()):
 
         defaultMaster += v[j,:] * minV
         v[j,:] *= diff
+
     defaultMaster = np.round(defaultMaster)
     deltas = np.round(v)
 
