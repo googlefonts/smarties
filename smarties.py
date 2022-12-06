@@ -254,9 +254,9 @@ for unicode,alts in sorted(alternates.items()):
     s = s[:k]
     v = v[:k,:]
 
-    reconst = np.round(u * np.diag(s) * v)
-    error = reconst - mat
-    print("Num masters %d max error without rounding masters %d" % (k, np.max(error)))
+    #reconst = np.round(u * np.diag(s) * v)
+    #error = reconst - mat
+    #print("Num masters %d max error without rounding masters %d" % (k, np.max(error)))
 
     # Multiply extracted features by singular values and be done with those values.
     v = np.diag(s) * v
