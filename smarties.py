@@ -249,17 +249,17 @@ for unicode,alts in sorted(alternates.items()):
     with open("U+%04X.svg" % unicode, "w") as fd:
 
         cols = 16
-        width = upem * cols
-        height = upem * math.ceil(len(SVGs) / cols)
+        width = upem * (cols + 1)
+        height = upem * (math.ceil(len(SVGs) / cols) + 1)
 
         print('<?xml version="1.0" encoding="UTF-8"?>', file=fd)
         print('<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">' % (width*scale, height*scale), file=fd)
         print('<rect width="100%" height="100%" fill="white"/>', file=fd)
-        y = -upem * .5
+        y = 0
         for i,commands in enumerate(SVGs):
             if i % cols == 0:
                 y += upem
-                x = upem * .5
+                x = upem
             s = '<g transform="translate(%d %d) scale(%g -%g)"><path d="%s"/></g>' % (x*scale, y*scale, scale, scale, commands)
             print(s, file=fd)
             x += upem
