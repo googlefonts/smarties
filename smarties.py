@@ -98,25 +98,20 @@ def reconstructRecordingPenValues(structure, vector):
         ret.append((op, tuple(args)))
     return ret
 
-def contourDiff(c1, c2):
-    vecs = []
-    for c in (c1, c2):
-        rPen = RecordingPen()
-        rPen.value = c
-        stats = StatisticsPen(glyphset=glyphset)
-        rPen.replay(stats)
-        size = abs(stats.area) ** 0.5 * 0.5
-        vector = (
-            int(size),
-            int(stats.meanX),
-            int(stats.meanY),
-            int(stats.stddevX * 2),
-            int(stats.stddevY * 2),
-            int(stats.correlation * size),
-        )
-        vecs.append(np.array(vector))
-    diff = vecs[0] - vecs[1]
-    return np.dot(diff, diff)
+def contourVector(c):
+    rPen = RecordingPen()
+    rPen.value = c
+    stats = StatisticsPen(glyphset=glyphset)
+    rPen.replay(stats)
+    size = abs(stats.area) ** 0.5 * 0.5
+    return (
+        int(size),
+        int(stats.meanX),
+        int(stats.meanY),
+        int(stats.stddevX * 2),
+        int(stats.stddevY * 2),
+        int(stats.correlation * size),
+    )
 
 def matchingCost(G, matching):
     return sum(G[i][j] for i, j in enumerate(matching))
@@ -129,14 +124,20 @@ def matchOutline(shape, ref):
     # Perform a weighted-matching of outlines between shape and ref.
     # If found a perfect-matching, that's our solution.
     G = []
-    for c1 in ref:
+    refVecs = [np.array(contourVector(c)) for c in ref]
+    shapeVecs = [np.array(contourVector(c)) for c in shape]
+
+    for c1,refVec in zip(ref, refVecs):
         row = []
         G.append(row)
-        for c2 in shape:
-            if contourStructure(c1) != contourStructure(c2):
+        c1Struct = contourStructure(c1)
+        for c2,shapeVec in zip(shape, shapeVecs):
+            if c1Struct != contourStructure(c2):
                 row.append(1e10)
                 continue
-            row.append(contourDiff(c1, c2))
+            diff = refVec - shapeVec
+            diff = np.dot(diff, diff)
+            row.append(diff)
     rows, cols = linear_sum_assignment(G)
     assert (rows == list(range(len(rows)))).all()
     cost = matchingCost(G, cols)
