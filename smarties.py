@@ -39,14 +39,6 @@ SBase = 0xAC00
 NCount = VCount * TCount
 SCount = count if count else LCount * NCount
 
-def isCombiningL(u):
-    return LBase <= u <= LBase+LCount-1
-def isCombiningV(u):
-    return VBase <= VBase+VCount-1
-def isCombiningT(u):
-    return TBase+1 <= u <= TBase+TCount-1
-def isCombinedS(u):
-    return SBase <= u <= SBase+SCount-1
 def decomposeS(S):
     L = (S - SBase) // NCount + LBase
     Nindex = (S - SBase) % NCount
