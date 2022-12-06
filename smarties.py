@@ -6,6 +6,7 @@ from fontTools.pens.svgPathPen import main as svgMain
 from fontTools.varLib.interpolatable import PerContourPen
 from collections import Counter, defaultdict
 import numpy as np
+import math
 from pprint import pprint
 import sys
 
@@ -238,20 +239,20 @@ for unicode,alts in sorted(alternates.items()):
 
     scale = .1
     with open("U+%04X.svg" % unicode, "w") as fd:
-        width = upem * len(SVGs)
+
+        cols = 16
+        width = upem * cols
+        height = upem * math.ceil(len(SVGs) / cols)
+
         print('<?xml version="1.0" encoding="UTF-8"?>', file=fd)
-        print('<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">' % (width*scale, (ascent-descent)*scale), file=fd)
+        print('<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">' % (width*scale, height*scale), file=fd)
         print('<rect width="100%" height="100%" fill="white"/>', file=fd)
-        width = upem*.5
-        for commands in SVGs:
-            s = '<g transform="translate(%d %d) scale(%g -%g)"><path d="%s"/></g>' % (width*scale, ascent*.5*scale, scale, scale, commands)
+        y = -upem * .5
+        for i,commands in enumerate(SVGs):
+            if i % cols == 0:
+                y += upem
+                x = upem * .5
+            s = '<g transform="translate(%d %d) scale(%g -%g)"><path d="%s"/></g>' % (x*scale, y*scale, scale, scale, commands)
             print(s, file=fd)
-            width += upem
+            x += upem
         print('</svg>', file=fd)
-
-
-
-
-
-
-
