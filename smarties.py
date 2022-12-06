@@ -1,6 +1,7 @@
 
 from fontTools.ttLib import TTFont
 from fontTools.pens.recordingPen import RecordingPen
+from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.svgPathPen import main as svgMain
 from fontTools.varLib.interpolatable import PerContourPen
 from collections import Counter, defaultdict
@@ -19,6 +20,9 @@ if len(sys.argv) > 2:
         count = int(arg)
 
 font = TTFont(fontfile)
+upem = font['head'].unitsPerEm
+hhea = font['hhea']
+ascent, descent = hhea.ascent, hhea.descent
 cmap = font['cmap'].getBestCmap()
 glyphset = font.getGlyphSet()
 
@@ -148,7 +152,7 @@ for S in range(SBase, SBase+SCount):
 
     #print("U+%04X: Good to go" % S)
 
-for u,alts in sorted(alternates.items()):
+for unicode,alts in sorted(alternates.items()):
     counter = Counter()
     sortedAlts = defaultdict(list)
     for outline in alts:
@@ -156,7 +160,7 @@ for u,alts in sorted(alternates.items()):
         counter[structure] += 1
         sortedAlts[structure].append(outlineVector(outline))
     best = max(counter, key=lambda k: counter[k])
-    print("U+%04X: Best structure matched %d out of %d instances." % (u, counter[best], len(alts)))
+    print("U+%04X: Best structure matched %d out of %d instances." % (unicode, counter[best], len(alts)))
 
     # Build matrix for best structure
     samples = sortedAlts[best]
@@ -212,6 +216,25 @@ for u,alts in sorted(alternates.items()):
         values = reconstructRecordingPenValues(best, (defaultMaster+delta).tolist()[0])
         masters.append(values)
 
+    masterSVGs = []
+    for master in masters:
+        rPen = RecordingPen()
+        rPen.value = master
+        pen = SVGPathPen(glyphset)
+        rPen.replay(pen)
+        commands = pen.getCommands()
+        masterSVGs.append(commands)
+
+    with open("U+%04X.svg" % unicode, "w") as fd:
+        width = upem * len(masters)
+        print('<?xml version="1.0" encoding="UTF-8"?>', file=fd)
+        print('<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">' % (width, ascent-descent), file=fd)
+        width = upem*.5
+        for commands in masterSVGs:
+            s = '<g transform="translate(%d %d) scale(1 -1)"><path d="%s"/></g>' % (width, ascent*.5, commands)
+            print(s, file=fd)
+            width += upem
+        print('</svg>', file=fd)
 
 
 
