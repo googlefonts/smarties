@@ -300,9 +300,12 @@ for unicode,alts in sorted(alternates.items()):
         instance = np.matrix(defaultMaster)
         for scalar,delta in zip(scalars.tolist()[0],deltas):
             instance += scalar * delta
+        instance = np.round(instance)
         values = reconstructRecordingPenValues(struct, instance.tolist()[0])
         instances.append(values)
-
+    unique_instances = set(tuple(i) for i in instances)
+    print("Num instances %d num unique instances %d" % (len(instances), len(unique_instances)))
+    del unique_instances
 
     originals = []
     for sample in samples:
