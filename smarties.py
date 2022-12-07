@@ -11,6 +11,7 @@ from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.pens.cu2quPen import Cu2QuPen
 from fontTools.ttLib.tables._g_l_y_f import Glyph
 from fontTools.ttLib.tables._g_l_y_f import GlyphComponent
+from fontTools.ttLib.tables.TupleVariation import TupleVariation
 from collections import defaultdict
 from itertools import permutations
 import numpy as np
@@ -589,7 +590,23 @@ for axis in fb.font['fvar'].axes:
     axis.flags = 1 # HIDDEN_AXIS
 
 variations = {}
-fb.setupGvar(variations)
+for unicode in learned.keys():
+    glyphName = componentNames[unicode]
+    deltas = componentDeltas[unicode]
+    variations[glyphName] = []
+    for i,delta in enumerate(deltas):
+        pen = TTGlyphPen(None)
+        cu2quPen = Cu2QuPen(pen, .5)
+        rPen = RecordingPen()
+        rPen.value = delta
+        rPen.replay(cu2quPen)
+        coords = pen.glyph().coordinates
+        tag = "%04d" % i
+        axes = {tag: (0, 1, 1)}
+        tv = TupleVariation(axes, coords)
+        variations[glyphName].append(tv)
+
+#fb.setupGvar(variations)
 
 
 
