@@ -544,6 +544,7 @@ for S,(order,pieces) in Sbuild.items():
     glyph = Glyph()
     data = bytearray(b'\xff\xfe\00\00\00\00\00\00\00\00')
     for componentUnicode,piece in zip(order,pieces):
+        componentName = componentNames[componentUnicode]
         position = outlinePosition(piece)
         position = (otRound(v) for v in position)
         vector = outlineVector(piece)
@@ -551,14 +552,12 @@ for S,(order,pieces) in Sbuild.items():
         vector = outlineVector(piece, flat=True)
         coordinates = componentCoordinates[componentUnicode][vector]
 
-        componentName = componentNames[componentUnicode]
         flag = struct.pack("<B", (1<<3)|(1<<4))
         gid = struct.pack("<H", reverseGlyphMap[componentName])
-        translate = struct.pack("<hh", *position)
-        deltas = componentDeltas[componentUnicode]
-        numAxes = struct.pack("<H", len(deltas))
-        axisIndices = b''.join(struct.pack("<B", i) for i in range(len(deltas)))
+        numAxes = struct.pack("<H", len(coordinates))
+        axisIndices = b''.join(struct.pack("<B", i) for i in range(len(coordinates)))
         axisValues = b''.join(struct.pack("<H", otRound(v * 16384)) for v in coordinates)
+        translate = struct.pack("<hh", *position)
 
         rec = flag + gid + numAxes + axisIndices + axisValues + translate
 
