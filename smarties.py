@@ -61,18 +61,32 @@ def contourStructure(contour):
 def outlineStructure(outline):
     return ''.join(contourStructure(contour) for contour in outline)
 
+def outlinePosition(outline):
+    assert(outline[0][0][0] == "moveTo")
+    return outline[0][0][1][0]
+
+def flatOutlinePosition(outline, initPos):
+    newOutline = []
+    for op in outline:
+        vec = []
+        for x_y in op[1]:
+            vec.append((x_y[0] + initPos[0], x_y[1] + initPos[1]))
+        newOutline.append((op[0], tuple(vec)))
+    return newOutline
+
+
 def outlineVector(outline):
     if not outline:
         return []
     assert(outline[0][0][0] == "moveTo")
-    initPos = outline[0][0][1][0]
+    initPos = outlinePosition(outline)
     vec = []
     for contour in outline:
         for op in contour:
             for x_y in op[1]:
                 vec.append(x_y[0] - initPos[0])
                 vec.append(x_y[1] - initPos[1])
-    return vec
+    return tuple(vec)
 
 def reconstructRecordingPenValues(structure, vector):
     # We saved the second char of the operation name; with num args
@@ -167,7 +181,7 @@ alternates = defaultdict(list)
 matches = set()
 Sbuild = {}
 
-for weight in (100, 1000):
+for weight in (250,):
     mismatch  = 0
     num_matched = 0
     not_matched = 0
@@ -223,12 +237,13 @@ for weight in (100, 1000):
             alternates[bestOrder[2]].append(bestOutlines[2])
             num_matched += 1
             matches.add(S)
-            Sbuild[S] = (order, (bestOutlines[0], bestOutlines[1], bestOutlines[2]))
+            Sbuild[S] = (bestOrder, (bestOutlines[0], bestOutlines[1], bestOutlines[2]))
         else:
             not_matched += 1
 
     print("matched: %d not matched: %d mismatch: %d " % (num_matched, not_matched, mismatch))
 
+learned = {}
 for unicode,alts in sorted(alternates.items()):
     print("U+%04X: Structure matched %d." % (unicode, len(alts)))
 
@@ -240,7 +255,6 @@ for unicode,alts in sorted(alternates.items()):
     # Remove duplicate samples, keeping order
     new_samples = {}
     for sample in samples:
-        sample = tuple(sample)
         if sample not in new_samples:
             new_samples[sample] = 1
     samples = list(new_samples.keys())
@@ -250,9 +264,9 @@ for unicode,alts in sorted(alternates.items()):
 
     # Find number of "masters" to keep
     first = s[0] # Largest singular value
-    for k in range(len(s)):
-        if s[k] < first / 100:
-            break
+    k = len(s)
+    while k and s[k - 1] < first / 100:
+        k -= 1
 
     # Truncate rank to k
     u = u[:,:k]
@@ -278,10 +292,10 @@ for unicode,alts in sorted(alternates.items()):
         minV = np.min(u[:,j])
         maxV = np.max(u[:,j])
         diff = maxV - minV
-        assert diff > 1e-3
 
         u[:,j] -= minV
-        u[:,j] /= diff
+        if diff:
+            u[:,j] /= diff
 
         defaultMaster += v[j,:] * minV
         v[j,:] *= diff
@@ -312,6 +326,12 @@ for unicode,alts in sorted(alternates.items()):
         instance = np.round(instance)
         values = reconstructRecordingPenValues(struct, instance.tolist()[0])
         instances.append(values)
+
+    learned[unicode] = {}
+    for s,i in zip(samples,instances):
+        learned[unicode][s] = i
+
+
     unique_instances = set(tuple(i) for i in instances)
     print("Num instances %d num unique instances %d" % (len(instances), len(unique_instances)))
     del unique_instances
@@ -402,6 +422,25 @@ fb.setupGlyf(glyphs)
 print("Saving butchered-hangul-flat-original.ttf")
 fb.save("butchered-hangul-flat-original.ttf")
 
+print("Building butchered-hangul-flat font")
+fb = createFontBuilder(font)
+glyphs = {}
+for S,(order,pieces) in Sbuild.items():
+    glyphName = cmap[S]
+    pen = TTGlyphPen(None)
+    cu2quPen = Cu2QuPen(pen, .5)
+    for unicode,piece in zip(order,pieces):
+        position = outlinePosition(piece)
+        vector = outlineVector(piece)
+        piece = learned[unicode][vector]
+        piece = flatOutlinePosition(piece, position)
+        rPen = RecordingPen()
+        rPen.value.extend(piece)
+        rPen.replay(cu2quPen)
+    glyphs[glyphName] = pen.glyph()
+fb.setupGlyf(glyphs)
+print("Saving butchered-hangul-flat.ttf")
+fb.save("butchered-hangul-flat.ttf")
 
 
 
