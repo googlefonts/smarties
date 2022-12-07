@@ -125,13 +125,14 @@ def matchOutline(shape, ref):
     G = []
     refVecs = [np.array(contourVector(c)) for c in ref]
     shapeVecs = [np.array(contourVector(c)) for c in shape]
+    refStructs = [contourStructure(c) for c in ref]
+    shapeStructs = [contourStructure(c) for c in shape]
 
-    for c1,refVec in zip(ref, refVecs):
+    for refStruct,refVec in zip(refStructs, refVecs):
         row = []
         G.append(row)
-        c1Struct = contourStructure(c1)
-        for c2,shapeVec in zip(shape, shapeVecs):
-            if c1Struct != contourStructure(c2):
+        for shapeStruct,shapeVec in zip(shapeStructs, shapeVecs):
+            if refStruct != shapeStruct:
                 row.append(1e10)
                 continue
             diff = refVec - shapeVec
