@@ -411,7 +411,9 @@ def createFontBuilder(font, chars, extraGlyphs=[]):
 
     return fb
 
+
 print("Building fonts")
+
 
 print("Building butchered-hangul-serif-flat-original font")
 fb = createFontBuilder(font, matches)
@@ -429,6 +431,7 @@ for S,(order,pieces) in Sbuild.items():
 fb.setupGlyf(glyphs)
 print("Saving butchered-hangul-serif-flat-original.ttf")
 fb.save("butchered-hangul-serif-flat-original.ttf")
+
 
 print("Building butchered-hangul-serif-flat font")
 fb = createFontBuilder(font, matches)
@@ -450,6 +453,7 @@ fb.setupGlyf(glyphs)
 print("Saving butchered-hangul-serif-flat.ttf")
 fb.save("butchered-hangul-serif-flat.ttf")
 
+
 print("Building butchered-hangul-serif-composite font")
 components = []
 componentNames = {}
@@ -463,7 +467,8 @@ for unicode,items in learned.items():
 
 fb = createFontBuilder(font, matches, components)
 glyphs = {}
-# Write out components
+
+# Write out components.
 for unicode,items in learned.items():
     for item in items:
         glyphName = componentNames[unicode][item]
@@ -474,6 +479,7 @@ for unicode,items in learned.items():
         rPen.replay(cu2quPen)
         glyphs[glyphName] = pen.glyph()
 
+# Write out composites.
 for S,(order,pieces) in Sbuild.items():
     glyphName = cmap[S]
     glyph = Glyph()
