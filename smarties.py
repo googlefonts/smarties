@@ -1,5 +1,6 @@
 
 from fontTools.ttLib import TTFont
+from fontTools.misc.roundTools import otRound
 from fontTools.pens.recordingPen import RecordingPen
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.svgPathPen import main as svgMain
@@ -8,6 +9,8 @@ from fontTools.varLib.interpolatable import PerContourPen
 from fontTools.fontBuilder import FontBuilder
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.pens.cu2quPen import Cu2QuPen
+from fontTools.ttLib.tables._g_l_y_f import Glyph
+from fontTools.ttLib.tables._g_l_y_f import GlyphComponent
 from collections import defaultdict
 from itertools import permutations
 import numpy as np
@@ -75,9 +78,11 @@ def flatOutlinePosition(outline, initPos):
     return newOutline
 
 
-def outlineVector(outline):
+def outlineVector(outline, flat=False):
     if not outline:
         return []
+    if flat:
+        outline = [outline]
     assert(outline[0][0][0] == "moveTo")
     initPos = outlinePosition(outline)
     vec = []
@@ -244,10 +249,12 @@ for weight in (250,):
     print("matched: %d not matched: %d mismatch: %d " % (num_matched, not_matched, mismatch))
 
 learned = {}
+structs = {}
 for unicode,alts in sorted(alternates.items()):
     print("U+%04X: Structure matched %d." % (unicode, len(alts)))
 
     struct = outlineStructure(alts[0])
+    structs[unicode] = struct
     samples = []
     for alt in alts:
         samples.append(outlineVector(alt))
@@ -382,14 +389,15 @@ for unicode,alts in sorted(alternates.items()):
             x += upem
         print('</svg>', file=fd)
 
-def createFontBuilder(font):
+def createFontBuilder(font, chars, extraGlyphs=[]):
     upem = font['head'].unitsPerEm
     cmap = font['cmap'].getBestCmap()
-    subset_cmap = {u:g for u,g in cmap.items() if u in matches}
+    subset_cmap = {u:g for u,g in cmap.items() if u in chars}
     subset_glyphs = set(subset_cmap.values())
-    subset_glyphOrder = [g for g in font.getGlyphOrder() if g in subset_glyphs]
+    subset_glyphOrder = [g for g in font.getGlyphOrder() if g in subset_glyphs] + extraGlyphs
+    del subset_glyphs
     metrics = font['hmtx'].metrics
-    subset_metrics = {g:metrics[g] for g in subset_glyphs}
+    subset_metrics = {g:metrics[g] if g in metrics else (0,0) for g in subset_glyphOrder}
 
     fb = FontBuilder(upem, isTTF=True)
     fb.setupGlyphOrder(subset_glyphOrder)
@@ -406,7 +414,7 @@ def createFontBuilder(font):
 print("Building fonts")
 
 print("Building butchered-hangul-serif-flat-original font")
-fb = createFontBuilder(font)
+fb = createFontBuilder(font, matches)
 glyphs = {}
 for S,(order,pieces) in Sbuild.items():
     glyphName = cmap[S]
@@ -423,7 +431,7 @@ print("Saving butchered-hangul-serif-flat-original.ttf")
 fb.save("butchered-hangul-serif-flat-original.ttf")
 
 print("Building butchered-hangul-serif-flat font")
-fb = createFontBuilder(font)
+fb = createFontBuilder(font, matches)
 glyphs = {}
 for S,(order,pieces) in Sbuild.items():
     glyphName = cmap[S]
@@ -442,6 +450,50 @@ fb.setupGlyf(glyphs)
 print("Saving butchered-hangul-serif-flat.ttf")
 fb.save("butchered-hangul-serif-flat.ttf")
 
+print("Building butchered-hangul-serif-composite font")
+components = []
+componentNames = {}
+for unicode,items in learned.items():
+    # Give name to each learned item:
+    componentNames[unicode] = {}
+    for i,item in enumerate(items):
+        name = "uni%04x.%d" % (unicode, i)
+        components.append(name)
+        componentNames[unicode][item] = name
+
+fb = createFontBuilder(font, matches, components)
+glyphs = {}
+# Write out components
+for unicode,items in learned.items():
+    for item in items:
+        glyphName = componentNames[unicode][item]
+        pen = TTGlyphPen(None)
+        cu2quPen = Cu2QuPen(pen, .5)
+        rPen = RecordingPen()
+        rPen.value = reconstructRecordingPenValues(structs[unicode], item)
+        rPen.replay(cu2quPen)
+        glyphs[glyphName] = pen.glyph()
+
+for S,(order,pieces) in Sbuild.items():
+    glyphName = cmap[S]
+    glyph = Glyph()
+    components = []
+    for componentUnicode,piece in zip(order,pieces):
+        position = outlinePosition(piece)
+        vector = outlineVector(piece)
+        componentName = componentNames[componentUnicode][vector]
+        component = GlyphComponent()
+        component.glyphName = componentName
+        component.x, component.y = (otRound(v) for v in position)
+        component.flags = 0x4
+        components.append(component)
+    glyph.components = components
+    glyph.numberOfContours = -1
+    glyphs[glyphName] = glyph
+
+fb.setupGlyf(glyphs)
+print("Saving butchered-hangul-serif-composite.ttf")
+fb.save("butchered-hangul-serif-composite.ttf")
 
 
 
