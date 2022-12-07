@@ -405,7 +405,7 @@ def createFontBuilder(font):
 
 print("Building fonts")
 
-print("Building butchered-hangul-flat-original font")
+print("Building butchered-hangul-serif-flat-original font")
 fb = createFontBuilder(font)
 glyphs = {}
 for S,(order,pieces) in Sbuild.items():
@@ -419,10 +419,10 @@ for S,(order,pieces) in Sbuild.items():
         rPen.replay(cu2quPen)
     glyphs[glyphName] = pen.glyph()
 fb.setupGlyf(glyphs)
-print("Saving butchered-hangul-flat-original.ttf")
-fb.save("butchered-hangul-flat-original.ttf")
+print("Saving butchered-hangul-serif-flat-original.ttf")
+fb.save("butchered-hangul-serif-flat-original.ttf")
 
-print("Building butchered-hangul-flat font")
+print("Building butchered-hangul-serif-flat font")
 fb = createFontBuilder(font)
 glyphs = {}
 for S,(order,pieces) in Sbuild.items():
@@ -439,8 +439,8 @@ for S,(order,pieces) in Sbuild.items():
         rPen.replay(cu2quPen)
     glyphs[glyphName] = pen.glyph()
 fb.setupGlyf(glyphs)
-print("Saving butchered-hangul-flat.ttf")
-fb.save("butchered-hangul-flat.ttf")
+print("Saving butchered-hangul-serif-flat.ttf")
+fb.save("butchered-hangul-serif-flat.ttf")
 
 
 
