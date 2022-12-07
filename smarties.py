@@ -401,7 +401,7 @@ for unicode,alts in sorted(alternates.items()):
             x += upem
         print('</svg>', file=fd)
 
-def createFontBuilder(font, chars, extraGlyphs=[]):
+def createFontBuilder(font, style, chars, extraGlyphs=[]):
     upem = font['head'].unitsPerEm
     cmap = font['cmap'].getBestCmap()
     subset_cmap = {u:g for u,g in cmap.items() if u in chars}
@@ -411,8 +411,13 @@ def createFontBuilder(font, chars, extraGlyphs=[]):
     del subset_glyphs
     metrics = font['hmtx'].metrics
     subset_metrics = {g:metrics[g] if g in metrics else (0,0) for g in subset_glyphOrder}
+    nameStrings = dict(
+        familyName=dict(en="butchered-hangul-serif"),
+        styleName=dict(en=style),
+    )
 
     fb = FontBuilder(upem, isTTF=True)
+    fb.setupNameTable(nameStrings)
     fb.setupGlyphOrder(subset_glyphOrder)
     fb.setupCharacterMap(subset_cmap)
     fb.setupHorizontalMetrics(subset_metrics)
@@ -429,7 +434,7 @@ print("Building fonts")
 
 
 print("Building butchered-hangul-serif-flat-original font")
-fb = createFontBuilder(font, matches)
+fb = createFontBuilder(font, "flat-original", matches)
 glyphs = {".notdef": Glyph()}
 for S,(order,pieces) in Sbuild.items():
     glyphName = cmap[S]
@@ -447,7 +452,7 @@ fb.save("butchered-hangul-serif-flat-original.ttf")
 
 
 print("Building butchered-hangul-serif-flat font")
-fb = createFontBuilder(font, matches)
+fb = createFontBuilder(font, "flat", matches)
 glyphs = {".notdef": Glyph()}
 for S,(order,pieces) in Sbuild.items():
     glyphName = cmap[S]
@@ -478,7 +483,7 @@ for unicode,items in learned.items():
         components.append(name)
         componentNames[unicode][item] = name
 
-fb = createFontBuilder(font, matches, components)
+fb = createFontBuilder(font, "composite", matches, components)
 glyphs = {".notdef": Glyph()}
 
 # Write out components.
@@ -524,7 +529,7 @@ for unicode in learned.keys():
     componentNames[unicode] = name
     components.append(name)
 
-fb = createFontBuilder(font, matches, components)
+fb = createFontBuilder(font, "smarties", matches, components)
 glyphs = {".notdef": Glyph()}
 
 # Write out components.
