@@ -5,6 +5,9 @@ from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.svgPathPen import main as svgMain
 from fontTools.pens.statisticsPen import StatisticsPen
 from fontTools.varLib.interpolatable import PerContourPen
+from fontTools.fontBuilder import FontBuilder
+from fontTools.pens.ttGlyphPen import TTGlyphPen
+from fontTools.pens.cu2quPen import Cu2QuPen
 from collections import defaultdict
 from itertools import permutations
 import numpy as np
@@ -161,6 +164,8 @@ if demoS:
 
 
 alternates = defaultdict(list)
+matches = set()
+Sbuild = {}
 
 for weight in (100, 1000):
     mismatch  = 0
@@ -217,6 +222,8 @@ for weight in (100, 1000):
             alternates[bestOrder[1]].append(bestOutlines[1])
             alternates[bestOrder[2]].append(bestOutlines[2])
             num_matched += 1
+            matches.add(S)
+            Sbuild[S] = (order, (bestOutlines[0], bestOutlines[1], bestOutlines[2]))
         else:
             not_matched += 1
 
@@ -354,3 +361,49 @@ for unicode,alts in sorted(alternates.items()):
             print(s, file=fd)
             x += upem
         print('</svg>', file=fd)
+
+def createFontBuilder(font):
+    upem = font['head'].unitsPerEm
+    cmap = font['cmap'].getBestCmap()
+    subset_cmap = {u:g for u,g in cmap.items() if u in matches}
+    subset_glyphs = set(subset_cmap.values())
+    subset_glyphOrder = [g for g in font.getGlyphOrder() if g in subset_glyphs]
+    metrics = font['hmtx'].metrics
+    subset_metrics = {g:metrics[g] for g in subset_glyphs}
+
+    fb = FontBuilder(upem, isTTF=True)
+    fb.setupGlyphOrder(subset_glyphOrder)
+    fb.setupCharacterMap(subset_cmap)
+    fb.setupHorizontalMetrics(subset_metrics)
+    hhea = font['hhea']
+    fb.setupHorizontalHeader(ascent=hhea.ascent, descent=hhea.descent)
+    os2 = font['OS/2']
+    fb.setupOS2(sTypoAscender=os2.sTypoAscender, usWinAscent=os2.usWinAscent, usWinDescent=os2.usWinDescent)
+    fb.setupPost()
+
+    return fb
+
+print("Building fonts")
+
+print("Building butchered-hangul-flat-original font")
+fb = createFontBuilder(font)
+glyphs = {}
+for S,(order,pieces) in Sbuild.items():
+    glyphName = cmap[S]
+    pen = TTGlyphPen(None)
+    cu2quPen = Cu2QuPen(pen, .5)
+    for piece in pieces:
+        rPen = RecordingPen()
+        for contour in piece:
+            rPen.value.extend(contour)
+        rPen.replay(cu2quPen)
+    glyphs[glyphName] = pen.glyph()
+fb.setupGlyf(glyphs)
+print("Saving butchered-hangul-flat-original.ttf")
+fb.save("butchered-hangul-flat-original.ttf")
+
+
+
+
+
+
