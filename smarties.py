@@ -567,7 +567,8 @@ for unicode in learned.keys():
     masterGlyph = pens[0].glyph()
     glyphs[glyphName] = masterGlyph
     for i,pen in enumerate(pens[1:]):
-        coords = pen.glyph().coordinates - masterGlyph.coordinates
+        glyph = pen.glyph()
+        coords = glyph.coordinates - masterGlyph.coordinates
         tag = "%04d" % i
         axes = {tag: (0, 1, 1)}
 
