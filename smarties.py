@@ -281,6 +281,8 @@ for unicode,alts in sorted(alternates.items()):
 
     defaultMaster = np.round(defaultMaster)
     deltas = np.round(v)
+    # Round scalars to 2.14
+    u = np.round(u * 16384) / 16384
 
     # Reconstruct again, from defaultMaster+deltas
     reconst = defaultMaster + u * deltas
