@@ -430,6 +430,8 @@ def createFontBuilder(font, style, chars, extraGlyphs=[]):
 
     return fb
 
+def createCu2QuPen(pen):
+    return Cu2QuPen(pen, .5, reverse_direction=True)
 
 print("Building fonts")
 
@@ -440,7 +442,7 @@ glyphs = {".notdef": Glyph()}
 for S,(order,pieces) in Sbuild.items():
     glyphName = cmap[S]
     pen = TTGlyphPen(None)
-    cu2quPen = Cu2QuPen(pen, .5)
+    cu2quPen = createCu2QuPen(pen)
     for piece in pieces:
         rPen = RecordingPen()
         for contour in piece:
@@ -458,7 +460,7 @@ glyphs = {".notdef": Glyph()}
 for S,(order,pieces) in Sbuild.items():
     glyphName = cmap[S]
     pen = TTGlyphPen(None)
-    cu2quPen = Cu2QuPen(pen, .5)
+    cu2quPen = createCu2QuPen(pen)
     for unicode,piece in zip(order,pieces):
         position = outlinePosition(piece)
         vector = outlineVector(piece)
@@ -492,7 +494,7 @@ for unicode,items in learned.items():
     for item in items:
         glyphName = componentNames[unicode][item]
         pen = TTGlyphPen(None)
-        cu2quPen = Cu2QuPen(pen, .5)
+        cu2quPen = createCu2QuPen(pen)
         rPen = RecordingPen()
         rPen.value = reconstructRecordingPenValues(structs[unicode], item)
         rPen.replay(cu2quPen)
@@ -538,7 +540,7 @@ for unicode in learned.keys():
     glyphName = componentNames[unicode]
     item = componentMaster[unicode]
     pen = TTGlyphPen(None)
-    cu2quPen = Cu2QuPen(pen, .5)
+    cu2quPen = createCu2QuPen(pen)
     rPen = RecordingPen()
     rPen.value = item
     rPen.replay(cu2quPen)
@@ -596,7 +598,7 @@ for unicode in learned.keys():
     variations[glyphName] = []
     for i,delta in enumerate(deltas):
         pen = TTGlyphPen(None)
-        cu2quPen = Cu2QuPen(pen, .5)
+        cu2quPen = createCu2QuPen(pen)
         rPen = RecordingPen()
         rPen.value = delta
         rPen.replay(cu2quPen)
