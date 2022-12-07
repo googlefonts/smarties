@@ -15,6 +15,7 @@ from collections import defaultdict
 from itertools import permutations
 import numpy as np
 from scipy.optimize import linear_sum_assignment
+import struct
 import math
 import sys
 
@@ -185,6 +186,9 @@ if demoS:
 alternates = defaultdict(list)
 matches = set()
 Sbuild = {}
+componentMaster = {}
+componentDeltas = {}
+componentCoordinates = {}
 
 for weight in (250,):
     mismatch  = 0
@@ -253,8 +257,8 @@ structs = {}
 for unicode,alts in sorted(alternates.items()):
     print("U+%04X: Structure matched %d." % (unicode, len(alts)))
 
-    struct = outlineStructure(alts[0])
-    structs[unicode] = struct
+    structure = outlineStructure(alts[0])
+    structs[unicode] = structure
     samples = []
     for alt in alts:
         samples.append(outlineVector(alt))
@@ -319,19 +323,27 @@ for unicode,alts in sorted(alternates.items()):
     meanSqError = np.mean(np.square(error))
     print("Num masters %d max error %d mean-squared error %g" % (k+1, maxError, meanSqError))
 
-    defaultMasterPenValues = reconstructRecordingPenValues(struct, defaultMaster.tolist()[0])
+    defaultMasterPenValues = reconstructRecordingPenValues(structure, defaultMaster.tolist()[0])
+    componentMaster[unicode] = defaultMasterPenValues
     masters = [defaultMasterPenValues]
+    componentDeltas[unicode] = []
     for delta in deltas:
-        values = reconstructRecordingPenValues(struct, (defaultMaster+delta).tolist()[0])
+        componentDeltas[unicode].append(reconstructRecordingPenValues(structure, delta.tolist()[0]))
+        values = reconstructRecordingPenValues(structure, (defaultMaster+delta).tolist()[0])
         masters.append(values)
 
+
     instances = []
+    componentCoordinates[unicode] = {}
     for scalars in u:
         instance = np.matrix(defaultMaster)
-        for scalar,delta in zip(scalars.tolist()[0],deltas):
+        scals = scalars.tolist()[0]
+        for scalar,delta in zip(scals,deltas):
             instance += scalar * delta
         instance = np.round(instance)
-        values = reconstructRecordingPenValues(struct, instance.tolist()[0])
+        instance = tuple(instance.tolist()[0])
+        componentCoordinates[unicode][instance] = scals
+        values = reconstructRecordingPenValues(structure, instance)
         instances.append(values)
 
     learned[unicode] = {}
@@ -345,7 +357,7 @@ for unicode,alts in sorted(alternates.items()):
 
     originals = []
     for sample in samples:
-        values = reconstructRecordingPenValues(struct, sample)
+        values = reconstructRecordingPenValues(structure, sample)
         originals.append(values)
 
     masterSVGs = []
@@ -502,5 +514,65 @@ print("Saving butchered-hangul-serif-composite.ttf")
 fb.save("butchered-hangul-serif-composite.ttf")
 
 
+print("Building butchered-hangul-serif-smarties font")
+components = []
+componentNames = {}
+for unicode in learned.keys():
+    # Give name to each learned item:
+    name = "uni%04x" % unicode
+    componentNames[unicode] = name
+    components.append(name)
+
+fb = createFontBuilder(font, matches, components)
+glyphs = {}
+
+# Write out components.
+for unicode in learned.keys():
+    glyphName = componentNames[unicode]
+    item = componentMaster[unicode]
+    pen = TTGlyphPen(None)
+    cu2quPen = Cu2QuPen(pen, .5)
+    rPen = RecordingPen()
+    rPen.value = item
+    rPen.replay(cu2quPen)
+    glyphs[glyphName] = pen.glyph()
+
+# Write out composites.
+reverseGlyphMap = fb.font.getReverseGlyphMap()
+for S,(order,pieces) in Sbuild.items():
+    glyphName = cmap[S]
+    glyph = Glyph()
+    data = bytearray(b'\xff\xfe\00\00\00\00\00\00\00\00')
+    for componentUnicode,piece in zip(order,pieces):
+        position = outlinePosition(piece)
+        position = (otRound(v) for v in position)
+        vector = outlineVector(piece)
+        piece = learned[componentUnicode][vector]
+        vector = outlineVector(piece, flat=True)
+        coordinates = componentCoordinates[componentUnicode][vector]
+
+        componentName = componentNames[componentUnicode]
+        flag = struct.pack("<B", 3)
+        gid = struct.pack("<H", reverseGlyphMap[componentName])
+        translate = struct.pack("<hh", *position)
+        deltas = componentDeltas[componentUnicode]
+        numAxes = struct.pack("<H", len(deltas))
+        axisIndices = b''.join(struct.pack("<B", i) for i in range(len(deltas)))
+        axisValues = b''.join(struct.pack("<H", otRound(v * 16384)) for v in coordinates)
+
+        rec = flag + gid + numAxes + axisIndices + axisValues + translate
+
+        data.extend(rec)
+
+    glyph.data = bytes(data)
+    glyphs[glyphName] = glyph
+
+fb.setupGlyf(glyphs)
+
+# Setup fvar/gvar
 
 
+
+print("Saving butchered-hangul-serif-smarties.ttf")
+fb.font.recalcBBoxes = False
+fb.save("butchered-hangul-serif-smarties.ttf", )
