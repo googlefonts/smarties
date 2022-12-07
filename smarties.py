@@ -575,6 +575,21 @@ for S,(order,pieces) in Sbuild.items():
 fb.setupGlyf(glyphs)
 
 # Setup fvar/gvar
+numAxes = 0
+for coordArray in componentCoordinates.values():
+    numAxes = max(numAxes, len(next(iter(coordArray.values()))))
+axes = []
+for i in range(numAxes):
+    tag = "%04d" % i
+    axes.append((tag, 0, 0, 1, tag))
+fb.setupFvar(axes, [])
+
+# Hide axes.
+for axis in fb.font['fvar'].axes:
+    axis.flags = 1 # HIDDEN_AXIS
+
+variations = {}
+fb.setupGvar(variations)
 
 
 
