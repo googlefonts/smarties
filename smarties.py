@@ -552,7 +552,7 @@ for S,(order,pieces) in Sbuild.items():
         coordinates = componentCoordinates[componentUnicode][vector]
 
         componentName = componentNames[componentUnicode]
-        flag = struct.pack("<B", 3)
+        flag = struct.pack("<B", (1<<3)|(1<<4))
         gid = struct.pack("<H", reverseGlyphMap[componentName])
         translate = struct.pack("<hh", *position)
         deltas = componentDeltas[componentUnicode]
