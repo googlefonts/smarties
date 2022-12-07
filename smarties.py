@@ -407,6 +407,7 @@ def createFontBuilder(font, chars, extraGlyphs=[]):
     subset_cmap = {u:g for u,g in cmap.items() if u in chars}
     subset_glyphs = set(subset_cmap.values())
     subset_glyphOrder = [g for g in font.getGlyphOrder() if g in subset_glyphs] + extraGlyphs
+    subset_glyphOrder.insert(0, ".notdef")
     del subset_glyphs
     metrics = font['hmtx'].metrics
     subset_metrics = {g:metrics[g] if g in metrics else (0,0) for g in subset_glyphOrder}
@@ -429,7 +430,7 @@ print("Building fonts")
 
 print("Building butchered-hangul-serif-flat-original font")
 fb = createFontBuilder(font, matches)
-glyphs = {}
+glyphs = {".notdef": Glyph()}
 for S,(order,pieces) in Sbuild.items():
     glyphName = cmap[S]
     pen = TTGlyphPen(None)
@@ -447,7 +448,7 @@ fb.save("butchered-hangul-serif-flat-original.ttf")
 
 print("Building butchered-hangul-serif-flat font")
 fb = createFontBuilder(font, matches)
-glyphs = {}
+glyphs = {".notdef": Glyph()}
 for S,(order,pieces) in Sbuild.items():
     glyphName = cmap[S]
     pen = TTGlyphPen(None)
@@ -473,12 +474,12 @@ for unicode,items in learned.items():
     # Give name to each learned item:
     componentNames[unicode] = {}
     for i,item in enumerate(items):
-        name = "uni%04x.%d" % (unicode, i)
+        name = "uni%04X.%d" % (unicode, i)
         components.append(name)
         componentNames[unicode][item] = name
 
 fb = createFontBuilder(font, matches, components)
-glyphs = {}
+glyphs = {".notdef": Glyph()}
 
 # Write out components.
 for unicode,items in learned.items():
@@ -519,12 +520,12 @@ components = []
 componentNames = {}
 for unicode in learned.keys():
     # Give name to each learned item:
-    name = "uni%04x" % unicode
+    name = "uni%04X" % unicode
     componentNames[unicode] = name
     components.append(name)
 
 fb = createFontBuilder(font, matches, components)
-glyphs = {}
+glyphs = {".notdef": Glyph()}
 
 # Write out components.
 for unicode in learned.keys():
@@ -542,7 +543,7 @@ reverseGlyphMap = fb.font.getReverseGlyphMap()
 for S,(order,pieces) in Sbuild.items():
     glyphName = cmap[S]
     glyph = Glyph()
-    data = bytearray(b'\xff\xfe\00\00\00\00\00\00\00\00')
+    data = bytearray(struct.pack(">h", -2) + b"\00\00\00\00\00\00\00\00")
     for componentUnicode,piece in zip(order,pieces):
         componentName = componentNames[componentUnicode]
         position = outlinePosition(piece)
@@ -552,12 +553,12 @@ for S,(order,pieces) in Sbuild.items():
         vector = outlineVector(piece, flat=True)
         coordinates = componentCoordinates[componentUnicode][vector]
 
-        flag = struct.pack("<B", (1<<3)|(1<<4))
-        gid = struct.pack("<H", reverseGlyphMap[componentName])
-        numAxes = struct.pack("<H", len(coordinates))
-        axisIndices = b''.join(struct.pack("<B", i) for i in range(len(coordinates)))
-        axisValues = b''.join(struct.pack("<H", otRound(v * 16384)) for v in coordinates)
-        translate = struct.pack("<hh", *position)
+        flag = struct.pack(">H", (1<<3)|(1<<4))
+        gid = struct.pack(">H", reverseGlyphMap[componentName])
+        numAxes = struct.pack(">B", len(coordinates))
+        axisIndices = b''.join(struct.pack(">B", i) for i in range(len(coordinates)))
+        axisValues = b''.join(struct.pack(">H", otRound(v * 16384)) for v in coordinates)
+        translate = struct.pack(">hh", *position)
 
         rec = flag + gid + numAxes + axisIndices + axisValues + translate
 
