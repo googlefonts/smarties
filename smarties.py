@@ -8,7 +8,7 @@ from fontTools.pens.statisticsPen import StatisticsPen
 from fontTools.varLib.interpolatable import PerContourPen
 from fontTools.fontBuilder import FontBuilder
 from fontTools.pens.ttGlyphPen import TTGlyphPen
-from fontTools.pens.cu2quPen import Cu2QuPen
+from fontTools.pens.cu2quPen import Cu2QuPen, Cu2QuMultiPen
 from fontTools.ttLib.tables._g_l_y_f import Glyph
 from fontTools.ttLib.tables._g_l_y_f import GlyphComponent
 from fontTools.ttLib.tables.TupleVariation import TupleVariation
@@ -187,7 +187,8 @@ if demoS:
 alternates = defaultdict(list)
 matches = set()
 Sbuild = {}
-componentMaster = {}
+componentDefaultMaster = {}
+componentMasters = {}
 componentDeltas = {}
 componentCoordinates = {}
 
@@ -325,13 +326,14 @@ for unicode,alts in sorted(alternates.items()):
     print("Num masters %d max error %d mean-squared error %g" % (k+1, maxError, meanSqError))
 
     defaultMasterPenValues = reconstructRecordingPenValues(structure, defaultMaster.tolist()[0])
-    componentMaster[unicode] = defaultMasterPenValues
+    componentDefaultMaster[unicode] = defaultMasterPenValues
     masters = [defaultMasterPenValues]
     componentDeltas[unicode] = []
     for delta in deltas:
         componentDeltas[unicode].append(reconstructRecordingPenValues(structure, delta.tolist()[0]))
         values = reconstructRecordingPenValues(structure, (defaultMaster+delta).tolist()[0])
         masters.append(values)
+    componentMasters[unicode] = masters
 
 
     instances = []
@@ -432,6 +434,19 @@ def createFontBuilder(font, style, chars, extraGlyphs=[]):
 
 def createCu2QuPen(pen):
     return Cu2QuPen(pen, .5, reverse_direction=True)
+def createCu2QuMultiPen(pens):
+    return Cu2QuMultiPen(pens, .5, reverse_direction=True)
+
+def replayCommandsThroughCu2QuMultiPen(commands, cu2quPen):
+    for ops in zip(*commands):
+        opNames = [op[0] for op in ops]
+        opArgs = [op[1] for op in ops]
+        opName = opNames[0]
+        assert all(name == opName for name in opNames)
+        if len(opArgs[0]):
+            getattr(cu2quPen, opName)(opArgs)
+        else:
+            getattr(cu2quPen, opName)()
 
 print("Building fonts")
 
@@ -535,16 +550,30 @@ for unicode in learned.keys():
 fb = createFontBuilder(font, "smarties", matches, components)
 glyphs = {".notdef": Glyph()}
 
-# Write out components.
+# Write out components & gather variations
+variations = {}
 for unicode in learned.keys():
     glyphName = componentNames[unicode]
-    item = componentMaster[unicode]
-    pen = TTGlyphPen(None)
-    cu2quPen = createCu2QuPen(pen)
-    rPen = RecordingPen()
-    rPen.value = item
-    rPen.replay(cu2quPen)
-    glyphs[glyphName] = pen.glyph()
+    deltas = componentDeltas[unicode]
+    variations[glyphName] = []
+
+    masterCommands = componentMasters[unicode]
+    numMasters = len(masterCommands)
+    pens = [TTGlyphPen(None) for i in range(numMasters)]
+    # Replay all masters together through cu2qu multi-pen!
+    cu2quPen = createCu2QuMultiPen(pens)
+    replayCommandsThroughCu2QuMultiPen(masterCommands, cu2quPen)
+
+    masterGlyph = pens[0].glyph()
+    glyphs[glyphName] = masterGlyph
+    for i,pen in enumerate(pens[1:]):
+        coords = pen.glyph().coordinates - masterGlyph.coordinates
+        tag = "%04d" % i
+        axes = {tag: (0, 1, 1)}
+
+        tv = TupleVariation(axes, coords)
+        variations[glyphName].append(tv)
+
 
 # Write out composites.
 reverseGlyphMap = fb.font.getReverseGlyphMap()
@@ -586,31 +615,11 @@ for i in range(numAxes):
     tag = "%04d" % i
     axes.append((tag, 0, 0, 1, tag))
 fb.setupFvar(axes, [])
-
 # Hide axes.
 for axis in fb.font['fvar'].axes:
     axis.flags = 1 # HIDDEN_AXIS
 
-variations = {}
-for unicode in learned.keys():
-    glyphName = componentNames[unicode]
-    deltas = componentDeltas[unicode]
-    variations[glyphName] = []
-    for i,delta in enumerate(deltas):
-        pen = TTGlyphPen(None)
-        cu2quPen = createCu2QuPen(pen)
-        rPen = RecordingPen()
-        rPen.value = delta
-        rPen.replay(cu2quPen)
-        coords = pen.glyph().coordinates
-        tag = "%04d" % i
-        axes = {tag: (0, 1, 1)}
-        tv = TupleVariation(axes, coords)
-        variations[glyphName].append(tv)
-
-#fb.setupGvar(variations)
-
-
+fb.setupGvar(variations)
 
 print("Saving butchered-hangul-serif-smarties.ttf")
 fb.font.recalcBBoxes = False
