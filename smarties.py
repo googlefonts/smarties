@@ -520,6 +520,7 @@ glyphs, variations, axes = setupVariableFont(glyphSets)
 fb.setupGlyf(glyphs)
 fb.setupFvar(axes, [])
 fb.setupGvar(variations)
+fb.font['avar'] = font['avar']
 
 print("Saving butchered-hangul-serif-flat-original-variable.ttf")
 fb.save("butchered-hangul-serif-flat-original-variable.ttf")
@@ -554,6 +555,8 @@ glyphs, variations, axes = setupVariableFont(glyphSets)
 fb.setupGlyf(glyphs)
 fb.setupFvar(axes, [])
 fb.setupGvar(variations)
+fb.font['avar'] = font['avar']
+
 print("Saving butchered-hangul-serif-flat-variable.ttf")
 fb.save("butchered-hangul-serif-flat-variable.ttf")
 
@@ -671,10 +674,12 @@ for i in range(numAxes):
     axes.append((tag, 0, 0, 1, tag))
 axes.append(('wght', WEIGHTS[0], WEIGHTS[0], WEIGHTS[1], "Weight"))
 fb.setupFvar(axes, [])
-# Hide axes.
+fb.font['avar'] = font['avar']
+# Hide axes and add avar segments
 for axis in fb.font['fvar'].axes:
     if axis.axisTag == 'wght': continue
     axis.flags = 1 # HIDDEN_AXIS
+    fb.font['avar'].segments[axis.axisTag] = {-1.0: -1.0, 0.0: 0.0, 1.0: 1.0}
 
 fb.setupGvar(variations)
 
