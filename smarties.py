@@ -578,7 +578,6 @@ for unicode in learned.keys():
         tv = TupleVariation(axes, coords)
         variations[glyphName].append(tv)
 
-
 # Write out composites.
 reverseGlyphMap = fb.font.getReverseGlyphMap()
 for S,(order,pieces) in Sbuild.items():
