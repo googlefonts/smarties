@@ -483,7 +483,7 @@ for S,(order,pieces) in Sbuild.items():
         piece = learned[unicode][vector]
         piece = flatOutlinePosition(piece, position)
         rPen = RecordingPen()
-        rPen.value.extend(piece)
+        rPen.value = piece
         rPen.replay(cu2quPen)
     glyphs[glyphName] = pen.glyph()
 fb.setupGlyf(glyphs)
