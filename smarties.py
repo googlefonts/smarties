@@ -440,7 +440,7 @@ def createFontBuilder(font, style, chars, extraGlyphs=[]):
 def createCu2QuPen(pen):
     return Cu2QuPen(pen, .5, reverse_direction=True)
 def createCu2QuMultiPen(pens):
-    return Cu2QuMultiPen(pens, .5)#, reverse_direction=True) # Bug in reverseContourPen...
+    return Cu2QuMultiPen(pens, .5)#, reverse_direction=True) # https://github.com/fonttools/fonttools/issues/2914
 
 def replayCommandsThroughCu2QuMultiPen(commands, cu2quPen):
     for ops in zip(*commands):
