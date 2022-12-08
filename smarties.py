@@ -187,10 +187,6 @@ if demoS:
 alternates = defaultdict(list)
 matches = set()
 Sbuild = {}
-componentDefaultMaster = {}
-componentMasters = {}
-componentDeltas = {}
-componentCoordinates = {}
 
 for weight in (250,):
     print("Font weight %d." % weight)
@@ -261,6 +257,10 @@ for weight in (250,):
 print("Learning.")
 learned = {}
 structs = {}
+componentDefaultMaster = {}
+componentMasters = {}
+componentDeltas = {}
+componentCoordinates = {}
 for unicode,alts in sorted(alternates.items()):
     print("U+%04X: Structure matched %d." % (unicode, len(alts)))
 
