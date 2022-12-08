@@ -570,6 +570,8 @@ for unicode in learned.keys():
     for i,pen in enumerate(pens[1:]):
         glyph = pen.glyph()
         coords = glyph.coordinates - masterGlyph.coordinates
+        # Add phantom points
+        coords.extend([(0,0), (0,0), (0,0), (0,0)])
         tag = "%04d" % i
         axes = {tag: (0, 1, 1)}
 
