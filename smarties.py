@@ -209,6 +209,7 @@ for weight in (250,):
         glyphset[cmap[u]].draw(pen)
         shapes[u] = [recPen.value for recPen in pen.value]
 
+    print("Gathering components.")
     for S in range(SBase, SBase+SCount):
         L,V,T = decomposeS(S)
         if T is None:
@@ -257,6 +258,7 @@ for weight in (250,):
 
     print("matched: %d not matched: %d mismatch: %d " % (num_matched, not_matched, mismatch))
 
+print("Learning.")
 learned = {}
 structs = {}
 for unicode,alts in sorted(alternates.items()):
