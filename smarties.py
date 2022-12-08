@@ -193,11 +193,14 @@ componentDeltas = {}
 componentCoordinates = {}
 
 for weight in (250,):
+    print("Font weight %d." % weight)
     mismatch  = 0
     num_matched = 0
     not_matched = 0
     shapes = {}
     glyphset = font.getGlyphSet(location={'wght':weight})
+
+    print("Gathering shapes.")
     for u in list(range(LBase, LBase+LCount)) + \
              list(range(VBase, VBase+VCount)) + \
              list(range(TBase+1, TBase+TCount)) + \
