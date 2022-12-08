@@ -187,9 +187,11 @@ if demoS:
 alternates = defaultdict(list)
 matches = set()
 Sbuild = {}
+WEIGHTS = (250, 900)
 
-for weight in (250,):
+for weight in WEIGHTS:
     print("Font weight %d." % weight)
+    Sbuild[weight] = {}
     mismatch  = 0
     num_matched = 0
     not_matched = 0
@@ -248,7 +250,7 @@ for weight in (250,):
             alternates[bestOrder[2]].append(bestOutlines[2])
             num_matched += 1
             matches.add(S)
-            Sbuild[S] = (bestOrder, (bestOutlines[0], bestOutlines[1], bestOutlines[2]))
+            Sbuild[weight][S] = (bestOrder, (bestOutlines[0], bestOutlines[1], bestOutlines[2]))
         else:
             not_matched += 1
 
@@ -454,25 +456,63 @@ def replayCommandsThroughCu2QuMultiPen(commands, cu2quPen):
             getattr(cu2quPen, opName)()
 
 
+def setupVariableFont(glyphSets):
+    variations = {}
+    tag = 'wght'
+    glyphs = glyphSets[WEIGHTS[0]]
+    varGlyphs = glyphSets[WEIGHTS[1]]
+    for glyphName in glyphs:
+        if glyphName == '.notdef': continue
+        glyph = glyphs[glyphName]
+        varGlyph = varGlyphs[glyphName]
+
+        coords = varGlyph.coordinates - glyph.coordinates
+        # Add phantom points
+        coords.extend([(0,0), (0,0), (0,0), (0,0)])
+        axes = {tag: (0, 1, 1)}
+        tv = TupleVariation(axes, coords)
+        variations[glyphName] = [tv]
+
+    axes = [(tag, WEIGHTS[0], WEIGHTS[0], WEIGHTS[1], tag)]
+    return glyphs, variations, axes
+
+
+
 print("Building fonts")
 
 
-print("Building butchered-hangul-serif-flat-original font")
-fb = createFontBuilder(font, "flat-original", matches)
-glyphs = {".notdef": Glyph()}
-for S,(order,pieces) in Sbuild.items():
+print("Building butchered-hangul-serif-flat-original-variable font")
+
+fb = createFontBuilder(font, "flat-original-variable", matches)
+glyphSets = {}
+for weight in WEIGHTS:
+    glyphSets[weight] = {".notdef": Glyph()}
+for S in matches:
     glyphName = cmap[S]
-    pen = TTGlyphPen(None)
-    cu2quPen = createCu2QuPen(pen)
-    for piece in pieces:
-        rPen = RecordingPen()
-        for contour in piece:
-            rPen.value.extend(contour)
-        rPen.replay(cu2quPen)
-    glyphs[glyphName] = pen.glyph()
+    pens = []
+    commands = []
+    for weight in WEIGHTS:
+        pens.append(TTGlyphPen(None))
+        order,pieces = Sbuild[weight][S]
+        command = []
+        for piece in pieces:
+            for contour in piece:
+                command.extend(contour)
+        commands.append(command)
+    cu2quPen = createCu2QuMultiPen(pens)
+    replayCommandsThroughCu2QuMultiPen(commands, cu2quPen)
+    for i,weight in enumerate(WEIGHTS):
+        glyphSets[weight][glyphName] = pens[i].glyph()
+
+glyphs, variations, axes = setupVariableFont(glyphSets)
 fb.setupGlyf(glyphs)
-print("Saving butchered-hangul-serif-flat-original.ttf")
-fb.save("butchered-hangul-serif-flat-original.ttf")
+fb.setupFvar(axes, [])
+fb.setupGvar(variations)
+
+print("Saving butchered-hangul-serif-flat-original-variable.ttf")
+fb.save("butchered-hangul-serif-flat-original-variable.ttf")
+
+sys.exit(0)
 
 
 print("Building butchered-hangul-serif-flat font")
