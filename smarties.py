@@ -658,7 +658,7 @@ for S in matches:
 
     variation.extend([(0,0), (0,0), (0,0), (0,0)]) # Phantom points
     axes = {'wght': (0, 1, 1)}
-    tv = TupleVariation(axes, coords)
+    tv = TupleVariation(axes, variation)
     variations[glyphName] = [tv]
 
 fb.setupGlyf(glyphs)
