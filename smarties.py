@@ -9,8 +9,7 @@ from fontTools.varLib.interpolatable import PerContourPen
 from fontTools.fontBuilder import FontBuilder
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.pens.cu2quPen import Cu2QuPen, Cu2QuMultiPen
-from fontTools.ttLib.tables._g_l_y_f import Glyph
-from fontTools.ttLib.tables._g_l_y_f import GlyphComponent
+from fontTools.ttLib.tables._g_l_y_f import Glyph, GlyphCoordinates, GlyphComponent
 from fontTools.ttLib.tables.TupleVariation import TupleVariation
 from collections import defaultdict
 from itertools import permutations
@@ -455,6 +454,19 @@ def replayCommandsThroughCu2QuMultiPen(commands, cu2quPen):
         else:
             getattr(cu2quPen, opName)()
 
+def getCoords(glyph):
+    if glyph.numberOfContours > 0:
+        return glyph.coordinates
+    if glyph.numberOfContours == 0:
+        return GlyphCoordinates()
+    if glyph.numberOfContours == -1:
+        components = glyph.components
+        coords = []
+        for comp in components:
+            coords.append((comp.x, comp.y))
+        return GlyphCoordinates(coords)
+
+    assert False
 
 def setupVariableFont(glyphSets):
     variations = {}
@@ -462,11 +474,11 @@ def setupVariableFont(glyphSets):
     glyphs = glyphSets[WEIGHTS[0]]
     varGlyphs = glyphSets[WEIGHTS[1]]
     for glyphName in glyphs:
-        if glyphName == '.notdef': continue
         glyph = glyphs[glyphName]
         varGlyph = varGlyphs[glyphName]
 
-        coords = varGlyph.coordinates - glyph.coordinates
+        coords = getCoords(varGlyph) - getCoords(glyph)
+
         # Add phantom points
         coords.extend([(0,0), (0,0), (0,0), (0,0)])
         axes = {tag: (0, 1, 1)}
@@ -545,55 +557,7 @@ fb.setupGvar(variations)
 print("Saving butchered-hangul-serif-flat-variable.ttf")
 fb.save("butchered-hangul-serif-flat-variable.ttf")
 
-sys.exit(0)
-
-print("Building butchered-hangul-serif-composite font")
-components = []
-componentNames = {}
-for unicode,items in learned.items():
-    # Give name to each learned item:
-    componentNames[unicode] = {}
-    for i,item in enumerate(items):
-        name = "uni%04X.%d" % (unicode, i)
-        components.append(name)
-        componentNames[unicode][item] = name
-
-fb = createFontBuilder(font, "composite", matches, components)
-glyphs = {".notdef": Glyph()}
-
-# Write out components.
-for unicode,items in learned.items():
-    for item in items:
-        glyphName = componentNames[unicode][item]
-        pen = TTGlyphPen(None)
-        cu2quPen = createCu2QuPen(pen)
-        rPen = RecordingPen()
-        rPen.value = reconstructRecordingPenValues(structs[unicode], item)
-        rPen.replay(cu2quPen)
-        glyphs[glyphName] = pen.glyph()
-
-# Write out composites.
-for S,(order,pieces) in Sbuild.items():
-    glyphName = cmap[S]
-    glyph = Glyph()
-    components = []
-    for componentUnicode,piece in zip(order,pieces):
-        position = outlinePosition(piece)
-        vector = outlineVector(piece)
-        componentName = componentNames[componentUnicode][vector]
-        component = GlyphComponent()
-        component.glyphName = componentName
-        component.x, component.y = (otRound(v) for v in position)
-        component.flags = 0x4
-        components.append(component)
-    glyph.components = components
-    glyph.numberOfContours = -1
-    glyphs[glyphName] = glyph
-
-fb.setupGlyf(glyphs)
-print("Saving butchered-hangul-serif-composite.ttf")
-fb.save("butchered-hangul-serif-composite.ttf")
-
+sys.exit()
 
 print("Building butchered-hangul-serif-smarties font")
 components = []
