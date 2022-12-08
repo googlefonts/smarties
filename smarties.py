@@ -512,29 +512,40 @@ fb.setupGvar(variations)
 print("Saving butchered-hangul-serif-flat-original-variable.ttf")
 fb.save("butchered-hangul-serif-flat-original-variable.ttf")
 
-sys.exit(0)
 
-
-print("Building butchered-hangul-serif-flat font")
-fb = createFontBuilder(font, "flat", matches)
-glyphs = {".notdef": Glyph()}
-for S,(order,pieces) in Sbuild.items():
+print("Building butchered-hangul-serif-flat-variable font")
+fb = createFontBuilder(font, "flat-variable", matches)
+glyphSets = {}
+for weight in WEIGHTS:
+    glyphSets[weight] = {".notdef": Glyph()}
+for S in matches:
     glyphName = cmap[S]
-    pen = TTGlyphPen(None)
-    cu2quPen = createCu2QuPen(pen)
-    for unicode,piece in zip(order,pieces):
-        position = outlinePosition(piece)
-        vector = outlineVector(piece)
-        piece = learned[unicode][vector]
-        piece = flatOutlinePosition(piece, position)
-        rPen = RecordingPen()
-        rPen.value = piece
-        rPen.replay(cu2quPen)
-    glyphs[glyphName] = pen.glyph()
-fb.setupGlyf(glyphs)
-print("Saving butchered-hangul-serif-flat.ttf")
-fb.save("butchered-hangul-serif-flat.ttf")
+    pens = []
+    commands = []
+    for weight in WEIGHTS:
+        pens.append(TTGlyphPen(None))
+        order,pieces = Sbuild[weight][S]
+        command = []
+        for unicode,piece in zip(order,pieces):
+            position = outlinePosition(piece)
+            vector = outlineVector(piece)
+            piece = learned[unicode][vector]
+            piece = flatOutlinePosition(piece, position)
+            command.extend(piece)
+        commands.append(command)
+    cu2quPen = createCu2QuMultiPen(pens)
+    replayCommandsThroughCu2QuMultiPen(commands, cu2quPen)
+    for i,weight in enumerate(WEIGHTS):
+        glyphSets[weight][glyphName] = pens[i].glyph()
 
+glyphs, variations, axes = setupVariableFont(glyphSets)
+fb.setupGlyf(glyphs)
+fb.setupFvar(axes, [])
+fb.setupGvar(variations)
+print("Saving butchered-hangul-serif-flat-variable.ttf")
+fb.save("butchered-hangul-serif-flat-variable.ttf")
+
+sys.exit(0)
 
 print("Building butchered-hangul-serif-composite font")
 components = []
