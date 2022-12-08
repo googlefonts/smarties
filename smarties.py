@@ -644,8 +644,8 @@ for S in matches:
         # Build variation
 
         for coord0,coord1 in zip(coordinates0, coordinates1):
-            delta = coord1 - coord0
-            variation.append((otRound(delta * 16384), 0))
+            delta = otRound(coord1 * 16384) - otRound(coord0 * 16384)
+            variation.append((delta, 0))
         x,y = position1[0] - position0[0], position1[1] - position0[1]
         variation.append((x, y)) # Translate
         variation.append((0, 0)) # Rotation
