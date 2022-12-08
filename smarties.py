@@ -557,9 +557,8 @@ fb.setupGvar(variations)
 print("Saving butchered-hangul-serif-flat-variable.ttf")
 fb.save("butchered-hangul-serif-flat-variable.ttf")
 
-sys.exit()
 
-print("Building butchered-hangul-serif-smarties font")
+print("Building butchered-hangul-serif-smarties-variable font")
 components = []
 componentNames = {}
 for unicode in learned.keys():
@@ -568,11 +567,11 @@ for unicode in learned.keys():
     componentNames[unicode] = name
     components.append(name)
 
-fb = createFontBuilder(font, "smarties", matches, components)
-glyphs = {".notdef": Glyph()}
+fb = createFontBuilder(font, "smarties-variable", matches, components)
+variations = {}
 
 # Write out components & gather variations
-variations = {}
+glyphs = {".notdef": Glyph()}
 for unicode in learned.keys():
     glyphName = componentNames[unicode]
     deltas = componentDeltas[unicode]
@@ -600,32 +599,65 @@ for unicode in learned.keys():
 
 # Write out composites.
 reverseGlyphMap = fb.font.getReverseGlyphMap()
-for S,(order,pieces) in Sbuild.items():
+for S in matches:
     glyphName = cmap[S]
+    order0,pieces0 = Sbuild[WEIGHTS[0]][S]
+    order1,pieces1 = Sbuild[WEIGHTS[1]][S]
+    assert order0 == order1
     glyph = Glyph()
+
     data = bytearray(struct.pack(">h", -2) + b"\00\00\00\00\00\00\00\00")
-    for componentUnicode,piece in zip(order,pieces):
+    variation = []
+    for componentUnicode,piece0,piece1 in zip(order0,pieces0,pieces1):
         componentName = componentNames[componentUnicode]
-        position = outlinePosition(piece)
-        position = (otRound(v) for v in position)
-        vector = outlineVector(piece)
-        piece = learned[componentUnicode][vector]
-        vector = outlineVector(piece, flat=True)
-        coordinates = componentCoordinates[componentUnicode][vector]
+
+        position0 = outlinePosition(piece0)
+        position0 = [otRound(v) for v in position0]
+        position1 = outlinePosition(piece1)
+        position1 = [otRound(v) for v in position1]
+
+        vector = outlineVector(piece0)
+        piece0 = learned[componentUnicode][vector]
+        vector = outlineVector(piece0, flat=True)
+        coordinates0 = componentCoordinates[componentUnicode][vector]
+        vector = outlineVector(piece1)
+        piece1 = learned[componentUnicode][vector]
+        vector = outlineVector(piece1, flat=True)
+        coordinates1 = componentCoordinates[componentUnicode][vector]
+        assert len(coordinates0) == len(coordinates1)
+
+        # Build glyph data
 
         flag = struct.pack(">H", (1<<3)|(1<<4))
         gid = struct.pack(">H", reverseGlyphMap[componentName])
-        numAxes = struct.pack(">B", len(coordinates))
-        axisIndices = b''.join(struct.pack(">B", i) for i in range(len(coordinates)))
-        axisValues = b''.join(struct.pack(">H", otRound(v * 16384)) for v in coordinates)
-        translate = struct.pack(">hh", *position)
+        numAxes = struct.pack(">B", len(coordinates0))
+        axisIndices = b''.join(struct.pack(">B", i) for i in range(len(coordinates0)))
+        axisValues = b''.join(struct.pack(">H", otRound(v * 16384)) for v in coordinates0)
+        translate = struct.pack(">hh", *position0)
 
         rec = flag + gid + numAxes + axisIndices + axisValues + translate
 
         data.extend(rec)
 
+        # Build variation
+
+        for coord0,coord1 in zip(coordinates0, coordinates1):
+            delta = coord1 - coord0
+            variation.append((otRound(delta * 16384), 0))
+        x,y = position1[0] - position0[0], position1[1] - position0[1]
+        variation.append((x, y)) # Translate
+        variation.append((0, 0)) # Rotation
+        variation.append((0, 0)) # Scale
+        variation.append((0, 0)) # Skew
+        variation.append((0, 0)) # TCenter
+
     glyph.data = bytes(data)
     glyphs[glyphName] = glyph
+
+    variation.extend([(0,0), (0,0), (0,0), (0,0)]) # Phantom points
+    axes = {'wght': (0, 1, 1)}
+    tv = TupleVariation(axes, coords)
+    variations[glyphName] = [tv]
 
 fb.setupGlyf(glyphs)
 
@@ -637,13 +669,15 @@ axes = []
 for i in range(numAxes):
     tag = "%04d" % i
     axes.append((tag, 0, 0, 1, tag))
+axes.append(('wght', WEIGHTS[0], WEIGHTS[0], WEIGHTS[1], "Weight"))
 fb.setupFvar(axes, [])
 # Hide axes.
 for axis in fb.font['fvar'].axes:
+    if axis.axisTag == 'wght': continue
     axis.flags = 1 # HIDDEN_AXIS
 
 fb.setupGvar(variations)
 
-print("Saving butchered-hangul-serif-smarties.ttf")
+print("Saving butchered-hangul-serif-smarties-variable.ttf")
 fb.font.recalcBBoxes = False
-fb.save("butchered-hangul-serif-smarties.ttf", )
+fb.save("butchered-hangul-serif-smarties-variable.ttf", )
