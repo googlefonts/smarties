@@ -639,7 +639,6 @@ for S in matches:
         translate = struct.pack(">hh", *position0)
 
         rec = flag + gid + numAxes + axisIndices + axisValues + translate
-
         data.extend(rec)
 
         # Build variation
