@@ -25,13 +25,9 @@ if len(sys.argv) < 2:
 
 fontfile = sys.argv[1]
 count = None
-demoS = None
 if len(sys.argv) > 2:
     arg = sys.argv[2]
-    if arg.startswith("U+"):
-        demoS = int(arg[2:], 16)
-    else:
-        count = int(arg)
+    count = int(arg)
 
 font = TTFont(fontfile)
 upem = font['head'].unitsPerEm
@@ -173,14 +169,6 @@ def matchOutline(shape, ref):
         reordered.append(shape[c])
 
     return reordered, cost
-
-
-
-if demoS:
-    S = demoS
-    L,V,T = decomposeS(S)
-    svgMain([fontfile, chr(L)+chr(V)+(chr(T) if T else '')+chr(S)])
-    sys.exit(0)
 
 
 alternates = defaultdict(list)
