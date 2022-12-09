@@ -432,7 +432,7 @@ def createTTGlyphPen():
 def createCu2QuPen(pen):
     return Cu2QuPen(pen, 1, reverse_direction=True)
 def createCu2QuMultiPen(pens):
-    return Cu2QuMultiPen(pens, 1)#, reverse_direction=True) # https://github.com/fonttools/fonttools/issues/2914
+    return Cu2QuMultiPen(pens, 1, reverse_direction=True)
 
 def replayCommandsThroughCu2QuMultiPen(commands, cu2quPen):
     for ops in zip(*commands):
