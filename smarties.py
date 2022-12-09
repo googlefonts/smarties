@@ -468,8 +468,7 @@ def setupVariableFont(glyphSets):
 
         coords = getCoords(varGlyph) - getCoords(glyph)
 
-        # Add phantom points
-        coords.extend([(0,0), (0,0), (0,0), (0,0)])
+        coords.extend([(0,0), (0,0), (0,0), (0,0)]) # Phantom points TODO
         axes = {tag: (0, 1, 1)}
         tv = TupleVariation(axes, coords)
         variations[glyphName] = [tv]
@@ -652,7 +651,7 @@ for S in matches:
     glyph.data = bytes(data)
     glyphs[glyphName] = glyph
 
-    variation.extend([(0,0), (0,0), (0,0), (0,0)]) # Phantom points
+    variation.extend([(0,0), (0,0), (0,0), (0,0)]) # Phantom points TODO
     axes = {'wght': (0, 1, 1)}
     tv = TupleVariation(axes, variation)
     variations[glyphName] = [tv]
