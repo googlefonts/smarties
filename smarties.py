@@ -5,6 +5,7 @@ from fontTools.pens.recordingPen import RecordingPen
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.svgPathPen import main as svgMain
 from fontTools.pens.statisticsPen import StatisticsPen
+from fontTools.pens.boundsPen import ControlBoundsPen
 from fontTools.varLib.interpolatable import PerContourPen
 from fontTools.fontBuilder import FontBuilder
 from fontTools.pens.ttGlyphPen import TTGlyphPen
@@ -597,7 +598,14 @@ for S in matches:
     assert order0 == order1
     glyph = Glyph()
 
-    data = bytearray(struct.pack(">h", -2) + b"\00\00\00\00\00\00\00\00")
+    boundsPen = ControlBoundsPen(None)
+    rPen = RecordingPen()
+    for order,piece in zip(order0,pieces0):
+        for contour in piece:
+            rPen.value.extend(contour)
+    rPen.replay(boundsPen)
+    b = [otRound(v) for v in boundsPen.bounds]
+    data = bytearray(struct.pack(">hhhhh", -2, b[0], b[1], b[2], b[3]))
     variation = []
     for componentUnicode,piece0,piece1 in zip(order0,pieces0,pieces1):
         componentName = componentNames[componentUnicode]
