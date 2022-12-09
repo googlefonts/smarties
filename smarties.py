@@ -32,8 +32,6 @@ if len(sys.argv) > 2:
 
 font = TTFont(fontfile)
 upem = font['head'].unitsPerEm
-hhea = font['hhea']
-ascent, descent = hhea.ascent, hhea.descent
 cmap = font['cmap'].getBestCmap()
 
 LBase = 0x1100
@@ -66,7 +64,7 @@ def outlinePosition(outline):
     assert(outline[0][0][0] == "moveTo")
     return outline[0][0][1][0]
 
-def flatOutlinePosition(outline, initPos):
+def positionFlatOutline(outline, initPos):
     newOutline = []
     for op in outline:
         vec = []
@@ -533,7 +531,7 @@ for S in matches:
             position = outlinePosition(piece)
             vector = outlineVector(piece)
             piece = learned[unicode][vector]
-            piece = flatOutlinePosition(piece, position)
+            piece = positionFlatOutline(piece, position)
             command.extend(piece)
         commands.append(command)
     cu2quPen = createCu2QuMultiPen(pens)
