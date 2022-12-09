@@ -427,6 +427,8 @@ def createFontBuilder(font, style, chars, extraGlyphs=[]):
 
     return fb
 
+def createTTGlyphPen():
+    return TTGlyphPen(None, outputImpliedClosingLine=True)
 def createCu2QuPen(pen):
     return Cu2QuPen(pen, 1, reverse_direction=True)
 def createCu2QuMultiPen(pens):
@@ -492,7 +494,7 @@ for S in matches:
     pens = []
     commands = []
     for weight in WEIGHTS:
-        pens.append(TTGlyphPen(None))
+        pens.append(createTTGlyphPen())
         order,pieces = Sbuild[weight][S]
         command = []
         for piece in pieces:
@@ -524,7 +526,7 @@ for S in matches:
     pens = []
     commands = []
     for weight in WEIGHTS:
-        pens.append(TTGlyphPen(None))
+        pens.append(createTTGlyphPen())
         order,pieces = Sbuild[weight][S]
         command = []
         for unicode,piece in zip(order,pieces):
@@ -570,7 +572,7 @@ for unicode in learned.keys():
 
     masterCommands = componentMasters[unicode]
     numMasters = len(masterCommands)
-    pens = [TTGlyphPen(None) for i in range(numMasters)]
+    pens = [createTTGlyphPen() for i in range(numMasters)]
     # Replay all masters together through cu2qu multi-pen!
     cu2quPen = createCu2QuMultiPen(pens)
     replayCommandsThroughCu2QuMultiPen(masterCommands, cu2quPen)
