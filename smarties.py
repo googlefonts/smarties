@@ -174,7 +174,11 @@ def matchOutline(shape, ref):
 alternates = defaultdict(list)
 matches = set()
 Sbuild = {}
-WEIGHTS = (250, 900)
+WEIGHTS = None
+for axis in font['fvar'].axes:
+    if axis.axisTag == 'wght':
+        WEIGHTS = (axis.minValue, axis.maxValue)
+        break
 
 for weight in WEIGHTS:
     print("Font weight %d." % weight)
