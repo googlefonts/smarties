@@ -131,6 +131,7 @@ def matchingCost(G, matching):
 
 def matchOutline(shape, ref):
     assert len(shape) == len(ref)
+    if not len(shape): return shape, 0
 
     # Shortcut: If structures match assume it's correct.
     # Although if order is wrong matching can recover the
@@ -181,7 +182,7 @@ for weight in WEIGHTS:
     mismatch  = 0
     num_matched = 0
     not_matched = 0
-    shapes = {}
+    shapes = {None: []}
     glyphset = font.getGlyphSet(location={'wght':weight})
 
     print("Gathering shapes.")
@@ -196,8 +197,6 @@ for weight in WEIGHTS:
     print("Gathering components.")
     for S in range(SBase, SBase+SCount):
         L,V,T = decomposeS(S)
-        if T is None:
-            continue # Only doing LVT for now
 
         Llen = len(shapes[L])
         Vlen = len(shapes[V])
@@ -241,6 +240,7 @@ for weight in WEIGHTS:
             not_matched += 1
 
     print("matched: %d not matched: %d mismatch: %d " % (num_matched, not_matched, mismatch))
+del alternates[None]
 
 print("Learning.")
 learned = {}
@@ -500,6 +500,7 @@ for S in matches:
         order,pieces = Sbuild[weight][S]
         command = []
         for piece in pieces:
+            if not piece: continue
             for contour in piece:
                 command.extend(contour)
         commands.append(command)
@@ -534,6 +535,7 @@ for S in matches:
         order,pieces = Sbuild[weight][S]
         command = []
         for unicode,piece in zip(order,pieces):
+            if not piece: continue
             position = outlinePosition(piece)
             vector = outlineVector(piece)
             piece = learned[unicode][vector]
@@ -616,6 +618,7 @@ for S in matches:
     data = bytearray(struct.pack(">hhhhh", -2, b[0], b[1], b[2], b[3]))
     variation = []
     for componentUnicode,piece0,piece1 in zip(order0,pieces0,pieces1):
+        if not piece0: continue
         componentName = componentNames[componentUnicode]
 
         position0 = outlinePosition(piece0)
