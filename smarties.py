@@ -627,13 +627,13 @@ for S in matches:
         # Build glyph data
 
         flag = struct.pack(">H", (1<<3)|(1<<4))
-        gid = struct.pack(">H", reverseGlyphMap[componentName])
         numAxes = struct.pack(">B", len(coordinates0))
+        gid = struct.pack(">H", reverseGlyphMap[componentName])
         axisIndices = b''.join(struct.pack(">B", i) for i in range(len(coordinates0)))
         axisValues = b''.join(struct.pack(">H", otRound(v * 16384)) for v in coordinates0)
         translate = struct.pack(">hh", *position0)
 
-        rec = flag + gid + numAxes + axisIndices + axisValues + translate
+        rec = flag + numAxes + gid + axisIndices + axisValues + translate
         data.extend(rec)
 
         # Build variation
