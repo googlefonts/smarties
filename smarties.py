@@ -413,6 +413,7 @@ def createFontBuilder(font, style, chars, extraGlyphs=[]):
     )
 
     fb = FontBuilder(upem, isTTF=True)
+    fb.setupHead(unitsPerEm=upem, created=font['head'].created, modified=font['head'].modified)
     fb.setupNameTable(nameStrings)
     fb.setupGlyphOrder(subset_glyphOrder)
     fb.setupCharacterMap(subset_cmap)
