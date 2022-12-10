@@ -217,7 +217,6 @@ for weight in WEIGHTS:
         bestOutlines = None
         for order in permutations((L,V,T)):
             # Chop shape for S into L,V,T components and save to respective lists
-            # Assumption, I know...
             len0 = len(shapes[order[0]])
             len1 = len(shapes[order[1]])
             len2 = len(shapes[order[2]])
