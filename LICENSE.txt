@@ -1,5 +1,5 @@
 The font files in this repository are derived from SourceHanSerifKR-VF.otf
-from Adobe. See LICENSE.adobe.txt
+from Adobe. See fonts/LICENSE.ofl.txt
 
 The code in this repository is licensed under the Apache 2.0 license
 below.

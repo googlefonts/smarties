@@ -369,7 +369,7 @@ for unicode,alts in sorted(alternates.items()):
             SVGs.append(commands)
 
     scale = .1
-    with open("U+%04X.svg" % unicode, "w") as fd:
+    with open("svg/U+%04X.svg" % unicode, "w") as fd:
 
         cols = 16
         width = upem * (cols + 1)
@@ -514,8 +514,8 @@ fb.setupFvar(axes, [])
 fb.setupGvar(variations)
 fb.font['avar'] = font['avar']
 
-print("Saving %s-%s font" % (FAMILY_NAME, style_name))
-fb.save("%s-%s.ttf" % (FAMILY_NAME, style_name))
+print("Saving fonts/%s-%s font" % (FAMILY_NAME, style_name))
+fb.save("fonts/%s-%s.ttf" % (FAMILY_NAME, style_name))
 
 
 style_name = "flat-variable"
@@ -551,8 +551,8 @@ fb.setupFvar(axes, [])
 fb.setupGvar(variations)
 fb.font['avar'] = font['avar']
 
-print("Saving %s-%s font" % (FAMILY_NAME, style_name))
-fb.save("%s-%s.ttf" % (FAMILY_NAME, style_name))
+print("Saving fonts/%s-%s font" % (FAMILY_NAME, style_name))
+fb.save("fonts/%s-%s.ttf" % (FAMILY_NAME, style_name))
 
 
 style_name = "smarties-variable"
@@ -688,5 +688,5 @@ fb.setupGvar(variations)
 
 fb.font.recalcBBoxes = False
 
-print("Saving %s-%s font" % (FAMILY_NAME, style_name))
-fb.save("%s-%s.ttf" % (FAMILY_NAME, style_name))
+print("Saving fonts/%s-%s font" % (FAMILY_NAME, style_name))
+fb.save("fonts/%s-%s.ttf" % (FAMILY_NAME, style_name))
