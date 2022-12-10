@@ -481,10 +481,13 @@ def setupVariableFont(glyphSets):
 
 print("Building fonts")
 
+FAMILY_NAME = "butchered-hangul-serif"
 
-print("Building butchered-hangul-serif-flat-original-variable font")
 
-fb = createFontBuilder(font, "flat-original-variable", matches)
+style_name = "flat-original-variable"
+print("Building %s-%s font" % (FAMILY_NAME, style_name))
+fb = createFontBuilder(font, style_name, matches)
+
 glyphSets = {}
 for weight in WEIGHTS:
     glyphSets[weight] = {".notdef": Glyph()}
@@ -511,12 +514,14 @@ fb.setupFvar(axes, [])
 fb.setupGvar(variations)
 fb.font['avar'] = font['avar']
 
-print("Saving butchered-hangul-serif-flat-original-variable.ttf")
-fb.save("butchered-hangul-serif-flat-original-variable.ttf")
+print("Saving %s-%s font" % (FAMILY_NAME, style_name))
+fb.save("%s-%s.ttf" % (FAMILY_NAME, style_name))
 
 
-print("Building butchered-hangul-serif-flat-variable font")
-fb = createFontBuilder(font, "flat-variable", matches)
+style_name = "flat-variable"
+print("Building %s-%s font" % (FAMILY_NAME, style_name))
+fb = createFontBuilder(font, style_name, matches)
+
 glyphSets = {}
 for weight in WEIGHTS:
     glyphSets[weight] = {".notdef": Glyph()}
@@ -546,11 +551,13 @@ fb.setupFvar(axes, [])
 fb.setupGvar(variations)
 fb.font['avar'] = font['avar']
 
-print("Saving butchered-hangul-serif-flat-variable.ttf")
-fb.save("butchered-hangul-serif-flat-variable.ttf")
+print("Saving %s-%s font" % (FAMILY_NAME, style_name))
+fb.save("%s-%s.ttf" % (FAMILY_NAME, style_name))
 
 
-print("Building butchered-hangul-serif-smarties-variable font")
+style_name = "smarties-variable"
+print("Building %s-%s font" % (FAMILY_NAME, style_name))
+
 components = []
 componentNames = {}
 for unicode in learned.keys():
@@ -559,7 +566,8 @@ for unicode in learned.keys():
     componentNames[unicode] = name
     components.append(name)
 
-fb = createFontBuilder(font, "smarties-variable", matches, components)
+fb = createFontBuilder(font, style_name, matches, components)
+
 variations = {}
 
 # Write out components & gather variations
@@ -678,6 +686,7 @@ for axis in fb.font['fvar'].axes:
 
 fb.setupGvar(variations)
 
-print("Saving butchered-hangul-serif-smarties-variable.ttf")
 fb.font.recalcBBoxes = False
-fb.save("butchered-hangul-serif-smarties-variable.ttf", )
+
+print("Saving %s-%s font" % (FAMILY_NAME, style_name))
+fb.save("%s-%s.ttf" % (FAMILY_NAME, style_name))
