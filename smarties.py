@@ -212,33 +212,17 @@ for weight in WEIGHTS:
             continue
 
         Sshape = shapes[S]
-        bestCost = 1e10
-        bestOrder = None
-        bestOutlines = None
-        for order in permutations((L,V,T)):
-            # Chop shape for S into L,V,T components and save to respective lists
-            len0 = len(shapes[order[0]])
-            len1 = len(shapes[order[1]])
-            len2 = len(shapes[order[2]])
-            shape0 = Sshape[:len0]
-            shape1 = Sshape[len0:len0+len1]
-            shape2 = Sshape[len0+len1:]
+        Pshape = shapes[L] + shapes[V] + shapes[T]
+        matchedOutline,cost = matchOutline(Sshape, Pshape)
 
-            matchedOutline0,cost0 = matchOutline(shape0, shapes[order[0]])
-            matchedOutline1,cost1 = matchOutline(shape1, shapes[order[1]])
-            matchedOutline2,cost2 = matchOutline(shape2, shapes[order[2]])
-            if cost0 + cost1 + cost2 < bestCost:
-               bestOrder = order
-               bestCost = cost0 + cost1 + cost2
-               bestOutlines = matchedOutline0,matchedOutline1,matchedOutline2
-
-        if bestOrder:
-            alternates[bestOrder[0]].append(bestOutlines[0])
-            alternates[bestOrder[1]].append(bestOutlines[1])
-            alternates[bestOrder[2]].append(bestOutlines[2])
+        if matchedOutline:
+            pieces = matchedOutline[:Llen],matchedOutline[Llen:Llen+Vlen],matchedOutline[Llen+Vlen:]
+            alternates[L].append(pieces[0])
+            alternates[V].append(pieces[1])
+            alternates[T].append(pieces[2])
             num_matched += 1
             matches.add(S)
-            Sbuild[weight][S] = (bestOrder, (bestOutlines[0], bestOutlines[1], bestOutlines[2]))
+            Sbuild[weight][S] = ((L,V,T), pieces)
         else:
             not_matched += 1
 
