@@ -672,7 +672,7 @@ fb.font['avar'] = font['avar']
 for axis in fb.font['fvar'].axes:
     if axis.axisTag == 'wght': continue
     axis.flags = 1 # HIDDEN_AXIS
-    fb.font['avar'].segments[axis.axisTag] = {-1.0: -1.0, 0.0: 0.0, 1.0: 1.0}
+    fb.font['avar'].segments[axis.axisTag] = {}
 
 fb.setupGvar(variations)
 
