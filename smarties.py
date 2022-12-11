@@ -210,7 +210,6 @@ for weight in WEIGHTS:
         Tlen = len(shapes[T])
         Slen = len(shapes[S])
         if Llen + Vlen + Tlen != Slen:
-            #print("U+%04X: Contour count mismatch; skipping" % S)
             mismatch += 1
             continue
 
@@ -229,7 +228,7 @@ for weight in WEIGHTS:
         else:
             not_matched += 1
 
-    print("matched: %d not matched: %d mismatch: %d " % (num_matched, not_matched, mismatch))
+    print("matched: %d not matched: %d contour count mismatch: %d " % (num_matched, not_matched, mismatch))
 del alternates[None]
 
 print("Learning.")
