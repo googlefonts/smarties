@@ -22,6 +22,7 @@ import sys
 
 if len(sys.argv) < 2:
     print("usage: python smarties.py NotoSerifKR-VF.otf")
+    print("usage: python smarties.py NotoSansKR-VF.otf")
     sys.exit(1)
 
 fontfile = sys.argv[1]
@@ -30,6 +31,7 @@ if len(sys.argv) > 2:
     arg = sys.argv[2]
     count = int(arg)
 
+serif = 'serif' if fontfile.find("Serif") >= 0 else 'sans'
 font = TTFont(fontfile)
 upem = font['head'].unitsPerEm
 cmap = font['cmap'].getBestCmap()
@@ -179,6 +181,7 @@ for axis in font['fvar'].axes:
     if axis.axisTag == 'wght':
         WEIGHTS = (axis.minValue, axis.maxValue)
         break
+FAMILY_NAME = "butchered-hangul-" + ('serif' if serif else 'sans')
 
 for weight in WEIGHTS:
     print("Font weight %d." % weight)
@@ -356,7 +359,7 @@ for unicode,alts in sorted(alternates.items()):
             SVGs.append(commands)
 
     scale = .1
-    with open("svg/U+%04X.svg" % unicode, "w") as fd:
+    with open("fonts/%s/svg/U+%04X.svg" % (serif, unicode), "w") as fd:
 
         cols = 16
         width = upem * (cols + 1)
@@ -395,7 +398,7 @@ def createFontBuilder(font, style, chars, extraGlyphs=[]):
     metrics = font['hmtx'].metrics
     subset_metrics = {g:metrics[g] if g in metrics else (0,0) for g in subset_glyphOrder}
     nameStrings = dict(
-        familyName=dict(en="butchered-hangul-serif"),
+        familyName=dict(en=FAMILY_NAME),
         styleName=dict(en=style),
     )
 
@@ -468,8 +471,6 @@ def setupVariableFont(glyphSets):
 
 print("Building fonts")
 
-FAMILY_NAME = "butchered-hangul-serif"
-
 
 style_name = "flat-original-variable"
 print("Building %s-%s font" % (FAMILY_NAME, style_name))
@@ -502,8 +503,8 @@ fb.setupFvar(axes, [])
 fb.setupGvar(variations)
 fb.font['avar'] = font['avar']
 
-print("Saving fonts/%s-%s font" % (FAMILY_NAME, style_name))
-fb.save("fonts/%s-%s.ttf" % (FAMILY_NAME, style_name))
+print("Saving fonts/%s/%s-%s font" % (serif, FAMILY_NAME, style_name))
+fb.save("fonts/%s/%s-%s.ttf" % (serif, FAMILY_NAME, style_name))
 
 
 style_name = "flat-variable"
@@ -540,8 +541,8 @@ fb.setupFvar(axes, [])
 fb.setupGvar(variations)
 fb.font['avar'] = font['avar']
 
-print("Saving fonts/%s-%s font" % (FAMILY_NAME, style_name))
-fb.save("fonts/%s-%s.ttf" % (FAMILY_NAME, style_name))
+print("Saving fonts/%s/%s-%s font" % (serif, FAMILY_NAME, style_name))
+fb.save("fonts/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name))
 
 
 style_name = "smarties-variable"
@@ -678,5 +679,5 @@ fb.setupGvar(variations)
 
 fb.font.recalcBBoxes = False
 
-print("Saving fonts/%s-%s font" % (FAMILY_NAME, style_name))
-fb.save("fonts/%s-%s.ttf" % (FAMILY_NAME, style_name))
+print("Saving fonts/%s/%s-%s font" % (serif, FAMILY_NAME, style_name))
+fb.save("fonts/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name))
