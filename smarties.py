@@ -472,7 +472,9 @@ print("Building fonts")
 
 
 style_name = "flat-original-variable"
-print("Building %s-%s font" % (FAMILY_NAME, style_name))
+file_name = "fonts/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name)
+print("Building %s font" % file_name)
+
 fb = createFontBuilder(font, style_name, matches)
 
 glyphSets = {}
@@ -502,12 +504,14 @@ fb.setupFvar(axes, [])
 fb.setupGvar(variations)
 fb.font['avar'] = font['avar']
 
-print("Saving fonts/%s/%s-%s font" % (serif, FAMILY_NAME, style_name))
-fb.save("fonts/%s/%s-%s.ttf" % (serif, FAMILY_NAME, style_name))
+print("Saving %s" % file_name)
+fb.save(file_name)
 
 
 style_name = "flat-variable"
-print("Building %s-%s font" % (FAMILY_NAME, style_name))
+file_name = "fonts/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name)
+print("Building %s font" % file_name)
+
 fb = createFontBuilder(font, style_name, matches)
 
 glyphSets = {}
@@ -540,12 +544,13 @@ fb.setupFvar(axes, [])
 fb.setupGvar(variations)
 fb.font['avar'] = font['avar']
 
-print("Saving fonts/%s/%s-%s font" % (serif, FAMILY_NAME, style_name))
-fb.save("fonts/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name))
+print("Saving %s" % file_name)
+fb.save(file_name)
 
 
 style_name = "smarties-variable"
-print("Building %s-%s font" % (FAMILY_NAME, style_name))
+file_name = "fonts/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name)
+print("Building %s font" % file_name)
 
 components = []
 componentNames = {}
@@ -678,5 +683,5 @@ fb.setupGvar(variations)
 
 fb.font.recalcBBoxes = False
 
-print("Saving fonts/%s/%s-%s font" % (serif, FAMILY_NAME, style_name))
-fb.save("fonts/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name))
+print("Saving %s" % file_name)
+fb.save(file_name)
