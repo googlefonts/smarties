@@ -181,7 +181,7 @@ for axis in font['fvar'].axes:
     if axis.axisTag == 'wght':
         WEIGHTS = (axis.minValue, axis.maxValue)
         break
-FAMILY_NAME = "butchered-hangul-" + ('serif' if serif else 'sans')
+FAMILY_NAME = "butchered-hangul-" + serif
 
 for weight in WEIGHTS:
     print("Font weight %d." % weight)
