@@ -54,9 +54,6 @@ def halve(l):
     n = len(l) // 2
     return l[:n], l[n:]
 
-alternates = defaultdict(list)
-matches = set()
-Sbuild = {}
 WEIGHTS = None
 for axis in font['fvar'].axes:
     if axis.axisTag == 'wght':
@@ -65,13 +62,11 @@ for axis in font['fvar'].axes:
 FAMILY_NAME = "butchered-hangul-" + serif
 
 shapes = {}
+Sbuild = {}
 for weight in WEIGHTS:
     print("Font weight %d." % weight)
     Sbuild[weight] = {}
     shapes[weight] = {None: []}
-    mismatch  = 0
-    num_matched = 0
-    not_matched = 0
     glyphset = font.getGlyphSet(location={'wght':weight})
 
     print("Gathering shapes.")
@@ -86,6 +81,11 @@ for weight in WEIGHTS:
 
 print("Gathering components.")
 w0,w1 = WEIGHTS
+matches = set()
+alternates = defaultdict(list)
+mismatch  = 0
+num_matched = 0
+not_matched = 0
 for S in range(SBase, SBase+SCount):
     L,V,T = decomposeS(S)
 
