@@ -691,14 +691,8 @@ for S in matches:
 
         # Build variation
 
-        for coord in coordinates:
-            variation.append((0, 0))
         x,y = position1[0] - position0[0], position1[1] - position0[1]
         variation.append((x, y)) # Translate
-        variation.append((0, 0)) # Rotation
-        variation.append((0, 0)) # Scale
-        variation.append((0, 0)) # Skew
-        variation.append((0, 0)) # TCenter
 
     glyph.data = bytes(data)
     glyphs[glyphName] = glyph
