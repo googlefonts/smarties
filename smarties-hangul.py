@@ -11,7 +11,6 @@ from fontTools.varLib.interpolatable import PerContourPen
 from fontTools.ttLib.tables._g_l_y_f import Glyph
 from fontTools.ttLib.tables.TupleVariation import TupleVariation
 from collections import defaultdict
-from itertools import permutations
 import struct
 import math
 import sys
