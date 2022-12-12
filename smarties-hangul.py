@@ -21,8 +21,8 @@ import math
 import sys
 
 if len(sys.argv) < 2:
-    print("usage: python smarties.py NotoSerifKR-VF.otf")
-    print("usage: python smarties.py NotoSansKR-VF.otf")
+    print("usage: python smarties-hangul.py NotoSerifKR-VF.otf")
+    print("usage: python smarties-hangul.py NotoSansKR-VF.otf")
     sys.exit(1)
 
 fontfile = sys.argv[1]
