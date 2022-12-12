@@ -1,4 +1,5 @@
 from contour import *
+from font import *
 
 from fontTools.ttLib import TTFont
 from fontTools.misc.roundTools import otRound
@@ -7,10 +8,7 @@ from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.svgPathPen import main as svgMain
 from fontTools.pens.boundsPen import ControlBoundsPen
 from fontTools.varLib.interpolatable import PerContourPen
-from fontTools.fontBuilder import FontBuilder
-from fontTools.pens.ttGlyphPen import TTGlyphPen
-from fontTools.pens.cu2quPen import Cu2QuPen, Cu2QuMultiPen
-from fontTools.ttLib.tables._g_l_y_f import Glyph, GlyphCoordinates, GlyphComponent
+from fontTools.ttLib.tables._g_l_y_f import Glyph
 from fontTools.ttLib.tables.TupleVariation import TupleVariation
 from collections import defaultdict
 from itertools import permutations
@@ -285,88 +283,6 @@ for unicode,alts in sorted(alternates.items()):
         print('</svg>', file=fd)
 
 
-def createFontBuilder(font, style, chars, extraGlyphs=[]):
-    upem = font['head'].unitsPerEm
-    cmap = font['cmap'].getBestCmap()
-    subset_cmap = {u:g for u,g in cmap.items() if u in chars}
-    subset_glyphs = set(subset_cmap.values())
-    subset_glyphOrder = [g for g in font.getGlyphOrder() if g in subset_glyphs] + extraGlyphs
-    subset_glyphOrder.insert(0, ".notdef")
-    del subset_glyphs
-    metrics = font['hmtx'].metrics
-    subset_metrics = {g:metrics[g] if g in metrics else (0,0) for g in subset_glyphOrder}
-    nameStrings = dict(
-        familyName=dict(en=FAMILY_NAME),
-        styleName=dict(en=style),
-    )
-
-    fb = FontBuilder(upem, isTTF=True)
-    fb.setupHead(unitsPerEm=upem, created=font['head'].created, modified=font['head'].modified)
-    fb.setupNameTable(nameStrings)
-    fb.setupGlyphOrder(subset_glyphOrder)
-    fb.setupCharacterMap(subset_cmap)
-    fb.setupHorizontalMetrics(subset_metrics)
-    hhea = font['hhea']
-    fb.setupHorizontalHeader(ascent=hhea.ascent, descent=hhea.descent)
-    os2 = font['OS/2']
-    fb.setupOS2(sTypoAscender=os2.sTypoAscender, usWinAscent=os2.usWinAscent, usWinDescent=os2.usWinDescent)
-    fb.setupPost()
-
-    return fb
-
-def createTTGlyphPen():
-    return TTGlyphPen(None, outputImpliedClosingLine=True)
-def createCu2QuPen(pen):
-    return Cu2QuPen(pen, 1, reverse_direction=True)
-def createCu2QuMultiPen(pens):
-    return Cu2QuMultiPen(pens, 1, reverse_direction=True)
-
-def replayCommandsThroughCu2QuMultiPen(commands, cu2quPen):
-    for ops in zip(*commands):
-        opNames = [op[0] for op in ops]
-        opArgs = [op[1] for op in ops]
-        opName = opNames[0]
-        assert all(name == opName for name in opNames)
-        if len(opArgs[0]):
-            getattr(cu2quPen, opName)(opArgs)
-        else:
-            getattr(cu2quPen, opName)()
-
-def getCoords(glyph):
-    if glyph.numberOfContours > 0:
-        return glyph.coordinates
-    if glyph.numberOfContours == 0:
-        return GlyphCoordinates()
-    if glyph.numberOfContours == -1:
-        components = glyph.components
-        coords = []
-        for comp in components:
-            coords.append((comp.x, comp.y))
-        return GlyphCoordinates(coords)
-
-    assert False
-
-def setupVariableFont(glyphSets):
-    variations = {}
-    tag = 'wght'
-    glyphs = glyphSets[WEIGHTS[0]]
-    varGlyphs = glyphSets[WEIGHTS[1]]
-    for glyphName in glyphs:
-        glyph = glyphs[glyphName]
-        varGlyph = varGlyphs[glyphName]
-
-        coords = getCoords(varGlyph) - getCoords(glyph)
-
-        coords.extend([(0,0), (0,0), (0,0), (0,0)]) # Phantom points TODO
-        axes = {tag: (0, 1, 1)}
-        tv = TupleVariation(axes, coords)
-        variations[glyphName] = [tv]
-
-    axes = [(tag, WEIGHTS[0], WEIGHTS[0], WEIGHTS[1], tag)]
-    return glyphs, variations, axes
-
-
-
 print("Building fonts")
 
 
@@ -374,7 +290,7 @@ style_name = "flat-original-variable"
 file_name = "fonts/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name)
 print("Building %s font" % file_name)
 
-fb = createFontBuilder(font, style_name, matches)
+fb = createFontBuilder(font, FAMILY_NAME, style_name, matches)
 
 glyphSets = {}
 for weight in WEIGHTS:
@@ -399,7 +315,7 @@ for S in matches:
     for i,weight in enumerate(WEIGHTS):
         glyphSets[weight][glyphName] = pens[i].glyph()
 
-glyphs, variations, axes = setupVariableFont(glyphSets)
+glyphs, variations, axes = setupVariableFont(glyphSets, WEIGHTS)
 fb.setupGlyf(glyphs)
 fb.setupFvar(axes, [])
 fb.setupGvar(variations)
@@ -413,7 +329,7 @@ style_name = "flat-variable"
 file_name = "fonts/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name)
 print("Building %s font" % file_name)
 
-fb = createFontBuilder(font, style_name, matches)
+fb = createFontBuilder(font, FAMILY_NAME, style_name, matches)
 
 glyphSets = {}
 for weight in WEIGHTS:
@@ -446,7 +362,7 @@ for S in matches:
     for i,weight in enumerate(WEIGHTS):
         glyphSets[weight][glyphName] = pens[i].glyph()
 
-glyphs, variations, axes = setupVariableFont(glyphSets)
+glyphs, variations, axes = setupVariableFont(glyphSets, WEIGHTS)
 fb.setupGlyf(glyphs)
 fb.setupFvar(axes, [])
 fb.setupGvar(variations)
@@ -468,7 +384,7 @@ for unicode in learned.keys():
     componentNames[unicode] = name
     components.append(name)
 
-fb = createFontBuilder(font, style_name, matches, components)
+fb = createFontBuilder(font, FAMILY_NAME, style_name, matches, components)
 
 variations = {}
 
