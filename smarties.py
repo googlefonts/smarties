@@ -111,7 +111,16 @@ def reconstructRecordingPenValues(structure, vector):
             y = next(it)
             args.append((x,y))
         ret.append((op, tuple(args)))
+    try:
+        next(it)
+        assert False
+    except StopIteration:
+        pass
     return ret
+
+def halve(l):
+    n = len(l) // 2
+    return l[:n], l[n:]
 
 def contourVector(c):
     rPen = RecordingPen()
@@ -133,13 +142,13 @@ def matchingCost(G, matching):
 
 def matchOutline(shape, ref):
     assert len(shape) == len(ref)
-    if not len(shape): return shape, 0
+    if not len(shape): return shape, 0, []
 
     # Shortcut: If structures match assume it's correct.
     # Although if order is wrong matching can recover the
     # correct order...
     #if outlineStructure(shape) == outlineStructure(ref):
-    #    return shape, 0
+    #    return shape, 0, range(len(shape))
 
     # Perform a weighted-matching of outlines between shape and ref.
     # If found a perfect-matching, that's our solution.
@@ -163,14 +172,14 @@ def matchOutline(shape, ref):
     assert (rows == list(range(len(rows)))).all()
     cost = matchingCost(G, cols)
     if cost >= 1e10:
-        return None, 1e10
+        return None, 1e10, None
 
     # We have a matching. Reorder contours and return
     reordered = []
     for c in cols:
         reordered.append(shape[c])
 
-    return reordered, cost
+    return reordered, cost, cols.tolist()[0]
 
 
 alternates = defaultdict(list)
@@ -183,13 +192,14 @@ for axis in font['fvar'].axes:
         break
 FAMILY_NAME = "butchered-hangul-" + serif
 
+shapes = {}
 for weight in WEIGHTS:
     print("Font weight %d." % weight)
     Sbuild[weight] = {}
+    shapes[weight] = {None: []}
     mismatch  = 0
     num_matched = 0
     not_matched = 0
-    shapes = {None: []}
     glyphset = font.getGlyphSet(location={'wght':weight})
 
     print("Gathering shapes.")
@@ -199,37 +209,50 @@ for weight in WEIGHTS:
              list(range(SBase, SBase+SCount)):
         pen = PerContourPen(RecordingPen)
         glyphset[cmap[u]].draw(pen)
-        shapes[u] = [recPen.value for recPen in pen.value]
+        shapes[weight][u] = [recPen.value for recPen in pen.value]
 
-    print("Gathering components.")
-    for S in range(SBase, SBase+SCount):
-        L,V,T = decomposeS(S)
 
-        Llen = len(shapes[L])
-        Vlen = len(shapes[V])
-        Tlen = len(shapes[T])
-        Slen = len(shapes[S])
-        if Llen + Vlen + Tlen != Slen:
-            mismatch += 1
-            continue
+print("Gathering components.")
+w0,w1 = WEIGHTS
+for S in range(SBase, SBase+SCount):
+    L,V,T = decomposeS(S)
 
-        Sshape = shapes[S]
-        Pshape = shapes[L] + shapes[V] + shapes[T]
-        matchedOutline,cost = matchOutline(Sshape, Pshape)
+    Llen = len(shapes[w0][L])
+    Vlen = len(shapes[w0][V])
+    Tlen = len(shapes[w0][T])
+    Slen = len(shapes[w0][S])
+    if Llen + Vlen + Tlen != Slen:
+        mismatch += 1
+        continue
 
-        if matchedOutline:
-            pieces = matchedOutline[:Llen],matchedOutline[Llen:Llen+Vlen],matchedOutline[Llen+Vlen:]
-            alternates[L].append(pieces[0])
-            alternates[V].append(pieces[1])
-            alternates[T].append(pieces[2])
-            num_matched += 1
-            matches.add(S)
-            Sbuild[weight][S] = ((L,V,T), pieces)
-        else:
-            not_matched += 1
+    Sshape = shapes[w0][S]
+    Pshape = shapes[w0][L] + shapes[w0][V] + shapes[w0][T]
+    matchedOutline,_,assignment0 = matchOutline(Sshape, Pshape)
 
-    print("matched: %d not matched: %d contour count mismatch: %d " % (num_matched, not_matched, mismatch))
+    if matchedOutline:
+        pieces0 = matchedOutline[:Llen],matchedOutline[Llen:Llen+Vlen],matchedOutline[Llen+Vlen:]
+
+        Sshape = shapes[w1][S]
+        Pshape = shapes[w1][L] + shapes[w1][V] + shapes[w1][T]
+        matchedOutline,_,assignment1 = matchOutline(Sshape, Pshape)
+        assert assignment0 == assignment1
+
+        pieces1 = matchedOutline[:Llen],matchedOutline[Llen:Llen+Vlen],matchedOutline[Llen+Vlen:]
+
+        alternates[L].append((pieces0[0],pieces1[0]))
+        alternates[V].append((pieces0[1],pieces1[1]))
+        alternates[T].append((pieces0[2],pieces1[2]))
+
+        num_matched += 1
+        matches.add(S)
+
+        Sbuild[S] = ((L,V,T), pieces0, pieces1)
+    else:
+        not_matched += 1
+
+print("matched: %d not matched: %d contour count mismatch: %d " % (num_matched, not_matched, mismatch))
 del alternates[None]
+
 
 print("Learning.")
 learned = {}
@@ -241,11 +264,11 @@ componentCoordinates = {}
 for unicode,alts in sorted(alternates.items()):
     print("U+%04X: Structure matched %d." % (unicode, len(alts)))
 
-    structure = outlineStructure(alts[0])
+    structure = outlineStructure(alts[0][0]) * len(WEIGHTS)
     structs[unicode] = structure
     samples = []
-    for alt in alts:
-        samples.append(outlineVector(alt))
+    for alt0,alt1 in alts:
+        samples.append(outlineVector(alt0) + outlineVector(alt1))
 
     # Remove duplicate samples, keeping order
     new_samples = {}
@@ -349,13 +372,14 @@ for unicode,alts in sorted(alternates.items()):
     instanceSVGs = []
     origSVGs = []
     for data,SVGs in ((masters,masterSVGs), (instances,instanceSVGs), (originals,origSVGs)):
-        for image in data:
-            rPen = RecordingPen()
-            rPen.value = image
-            pen = SVGPathPen(glyphset)
-            rPen.replay(pen)
-            commands = pen.getCommands()
-            SVGs.append(commands)
+        for images in data:
+            for image in halve(images):
+                rPen = RecordingPen()
+                rPen.value = image
+                pen = SVGPathPen(glyphset)
+                rPen.replay(pen)
+                commands = pen.getCommands()
+                SVGs.append(commands)
 
     scale = .1
     with open("fonts/%s/svg/U+%04X.svg" % (serif, unicode), "w") as fd:
@@ -385,6 +409,7 @@ for unicode,alts in sorted(alternates.items()):
             print(s, file=fd)
             x += upem
         print('</svg>', file=fd)
+
 
 def createFontBuilder(font, style, chars, extraGlyphs=[]):
     upem = font['head'].unitsPerEm
@@ -484,9 +509,11 @@ for S in matches:
     glyphName = cmap[S]
     pens = []
     commands = []
-    for weight in WEIGHTS:
+    for i,weight in enumerate(WEIGHTS):
         pens.append(createTTGlyphPen())
-        order,pieces = Sbuild[weight][S]
+        build = Sbuild[S]
+        order = build[0]
+        pieces = build[i+1]
         command = []
         for piece in pieces:
             if not piece: continue
@@ -523,16 +550,23 @@ for S in matches:
     commands = []
     for weight in WEIGHTS:
         pens.append(createTTGlyphPen())
-        order,pieces = Sbuild[weight][S]
-        command = []
-        for unicode,piece in zip(order,pieces):
-            if not piece: continue
-            position = outlinePosition(piece)
-            vector = outlineVector(piece)
-            piece = learned[unicode][vector]
-            piece = positionFlatOutline(piece, position)
-            command.extend(piece)
-        commands.append(command)
+        commands.append([])
+
+    for unicode,piece0,piece1 in zip(*Sbuild[S]):
+        if not piece0: continue
+        position0 = outlinePosition(piece0)
+        vector0 = outlineVector(piece0)
+        position1 = outlinePosition(piece1)
+        vector1 = outlineVector(piece1)
+
+        piece01 = learned[unicode][vector0+vector1]
+        piece0, piece1 = halve(piece01)
+
+        piece0 = positionFlatOutline(piece0, position0)
+        piece1 = positionFlatOutline(piece1, position1)
+        commands[0].extend(piece0)
+        commands[1].extend(piece1)
+
     cu2quPen = createCu2QuMultiPen(pens)
     replayCommandsThroughCu2QuMultiPen(commands, cu2quPen)
     for i,weight in enumerate(WEIGHTS):
@@ -572,32 +606,51 @@ for unicode in learned.keys():
     variations[glyphName] = []
 
     masterCommands = componentMasters[unicode]
+    # split masterCommands into their weight components
+    master0s = []
+    master1s = []
+    for master in masterCommands:
+        master0,master1 = halve(master)
+        master0s.append(master0)
+        master1s.append(master1)
+
     numMasters = len(masterCommands)
-    pens = [createTTGlyphPen() for i in range(numMasters)]
+    pens = [createTTGlyphPen() for i in range(numMasters * len(WEIGHTS))]
     # Replay all masters together through cu2qu multi-pen!
     cu2quPen = createCu2QuMultiPen(pens)
-    replayCommandsThroughCu2QuMultiPen(masterCommands, cu2quPen)
+    replayCommandsThroughCu2QuMultiPen(master0s + master1s, cu2quPen)
 
     masterGlyph = pens[0].glyph()
+    weightGlyph = pens[numMasters].glyph()
     glyphs[glyphName] = masterGlyph
-    for i,pen in enumerate(pens[1:]):
-        glyph = pen.glyph()
-        coords = glyph.coordinates - masterGlyph.coordinates
-        # Add phantom points
-        coords.extend([(0,0), (0,0), (0,0), (0,0)])
-        tag = "%04d" % i
-        axes = {tag: (0, 1, 1)}
+    allDeltas = []
+
+    for i,pen in enumerate(pens):
+        if i == 0:
+            allDeltas.append(None)
+            continue
+        glyph = pen.glyph() if i != numMasters else weightGlyph
+        coords = glyph.coordinates - (masterGlyph.coordinates if i <= numMasters else weightGlyph.coordinates)
+        allDeltas.append(coords.copy())
+        if i > numMasters:
+            coords -= allDeltas[i - numMasters]
+        coords.extend([(0,0), (0,0), (0,0), (0,0)]) # TODO Phantom points
+        axes = {}
+        if i % numMasters != 0:
+            tag = "%04d" % ((i % numMasters) - 1)
+            axes[tag] = (0, 1, 1)
+        if i >= numMasters:
+            axes['wght'] = (0, 1, 1)
 
         tv = TupleVariation(axes, coords)
         variations[glyphName].append(tv)
+
 
 # Write out composites.
 reverseGlyphMap = fb.font.getReverseGlyphMap()
 for S in matches:
     glyphName = cmap[S]
-    order0,pieces0 = Sbuild[WEIGHTS[0]][S]
-    order1,pieces1 = Sbuild[WEIGHTS[1]][S]
-    assert order0 == order1
+    order0,pieces0,pieces1 = Sbuild[S]
     glyph = Glyph()
 
     boundsPen = ControlBoundsPen(None)
@@ -618,23 +671,19 @@ for S in matches:
         position1 = outlinePosition(piece1)
         position1 = [otRound(v) for v in position1]
 
-        vector = outlineVector(piece0)
-        piece0 = learned[componentUnicode][vector]
-        vector = outlineVector(piece0, flat=True)
-        coordinates0 = componentCoordinates[componentUnicode][vector]
-        vector = outlineVector(piece1)
-        piece1 = learned[componentUnicode][vector]
-        vector = outlineVector(piece1, flat=True)
-        coordinates1 = componentCoordinates[componentUnicode][vector]
-        assert len(coordinates0) == len(coordinates1)
+        vector0 = outlineVector(piece0)
+        vector1 = outlineVector(piece1)
+        piece = learned[componentUnicode][vector0+vector1]
+        vector = outlineVector(piece, flat=True)
+        coordinates = componentCoordinates[componentUnicode][vector]
 
         # Build glyph data
 
         flag = struct.pack(">H", (1<<3)|(1<<4))
-        numAxes = struct.pack(">B", len(coordinates0))
+        numAxes = struct.pack(">B", len(coordinates))
         gid = struct.pack(">H", reverseGlyphMap[componentName])
-        axisIndices = b''.join(struct.pack(">B", i) for i in range(len(coordinates0)))
-        axisValues = b''.join(struct.pack(">H", otRound(v * 16384)) for v in coordinates0)
+        axisIndices = b''.join(struct.pack(">B", i) for i in range(len(coordinates)))
+        axisValues = b''.join(struct.pack(">H", otRound(v * 16384)) for v in coordinates)
         translate = struct.pack(">hh", *position0)
 
         rec = flag + numAxes + gid + axisIndices + axisValues + translate
@@ -642,9 +691,8 @@ for S in matches:
 
         # Build variation
 
-        for coord0,coord1 in zip(coordinates0, coordinates1):
-            delta = otRound(coord1 * 16384) - otRound(coord0 * 16384)
-            variation.append((delta, 0))
+        for coord in coordinates:
+            variation.append((0, 0))
         x,y = position1[0] - position0[0], position1[1] - position0[1]
         variation.append((x, y)) # Translate
         variation.append((0, 0)) # Rotation
