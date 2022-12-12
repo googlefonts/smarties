@@ -630,7 +630,7 @@ for S in matches:
 
         # Build glyph data
 
-        flag = struct.pack(">H", (1<<3)|(1<<4))
+        flag = struct.pack(">H", (1<<3)|(1<<4)|(1<<13))
         numAxes = struct.pack(">B", len(coordinates0))
         gid = struct.pack(">H", reverseGlyphMap[componentName])
         axisIndices = b''.join(struct.pack(">B", i) for i in range(len(coordinates0)))
@@ -647,10 +647,6 @@ for S in matches:
             variation.append((delta, 0))
         x,y = position1[0] - position0[0], position1[1] - position0[1]
         variation.append((x, y)) # Translate
-        variation.append((0, 0)) # Rotation
-        variation.append((0, 0)) # Scale
-        variation.append((0, 0)) # Skew
-        variation.append((0, 0)) # TCenter
 
     glyph.data = bytes(data)
     glyphs[glyphName] = glyph
