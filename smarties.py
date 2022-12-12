@@ -626,10 +626,12 @@ for unicode in learned.keys():
     allDeltas = []
 
     for i,pen in enumerate(pens):
-        if i == 0:
+        if i == 0: # Skip default master
             allDeltas.append(None)
             continue
+        # Weight master is already loaded; we can't load it again
         glyph = pen.glyph() if i != numMasters else weightGlyph
+        # Subtract base; either the default master or the weight master
         coords = glyph.coordinates - (masterGlyph.coordinates if i <= numMasters else weightGlyph.coordinates)
         allDeltas.append(coords.copy())
         if i > numMasters:
