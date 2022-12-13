@@ -1,4 +1,4 @@
-The font files in this repository are derived from NotoSerifKR-VF.otf.
+The font files in this repository are derived from noto-cjk.
 See fonts/LICENSE.ofl.txt for license information.
 
 The code in this repository is licensed under the Apache 2.0 license
