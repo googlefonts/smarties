@@ -126,9 +126,13 @@ def matchOutline(shape, ref, partial=False):
     for c in cols:
         matched.add(c)
         reordered.append(shape[c])
-    # Append any contours not matched
+    # Append any contours not matched, sorted by their structure
+    other = []
     for i in range(len(shape)):
         if i in matched: continue
-        reordered.append(shape[i])
+        other.append((shapeStructs[i], shape[i]))
+    other = sorted(other)
+    for c in other:
+        reordered.append(c[1])
 
     return reordered, cost, cols.tolist()
