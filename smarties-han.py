@@ -542,6 +542,10 @@ for H in matches:
         vector = outlineVector(piece, flat=True)
         coordinates = componentCoordinates[componentKey][vector]
 
+        # Work around our 1-master 2-master issue.
+        if coordinates == [0]:
+            coordinates = []
+
         # Build glyph data
 
         flag = struct.pack(">H", (1<<3)|(1<<4))
