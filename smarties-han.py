@@ -368,7 +368,6 @@ fb.font['avar'] = font['avar']
 print("Saving %s" % file_name)
 fb.save(file_name)
 
-sys.exit()
 
 style_name = "flat-variable"
 file_name = "fonts/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name)
@@ -379,22 +378,40 @@ fb = createFontBuilder(font, FAMILY_NAME, style_name, matches)
 glyphSets = {}
 for weight in WEIGHTS:
     glyphSets[weight] = {".notdef": Glyph()}
-for S in matches:
-    glyphName = cmap[S]
+for H in matches:
+    glyphName = cmap[H]
     pens = []
     commands = []
-    for weight in WEIGHTS:
+    for i,weight in enumerate(WEIGHTS):
         pens.append(createTTGlyphPen())
         commands.append([])
 
-    for unicode,piece0,piece1 in zip(*Sbuild[S]):
-        if not piece0: continue
+    """
+        command = []
+        for rShape in rShapes:
+            shape = rShape[i+1]
+
+            position1 = outlinePosition(piece1)
+            vector1 = outlineVector(piece1)
+
+            piece01 = learned[unicode][vector0+vector1]
+            piece0, piece1 = halve(piece01)
+
+            piece0 = positionFlatOutline(piece0, position0)
+            piece1 = positionFlatOutline(piece1, position1)
+            commands[0].extend(piece0)
+
+            for contour in shape:
+                command.extend(contour)
+    """
+
+    for key,piece0,piece1 in Hbuild2[H]:
         position0 = outlinePosition(piece0)
         vector0 = outlineVector(piece0)
         position1 = outlinePosition(piece1)
         vector1 = outlineVector(piece1)
 
-        piece01 = learned[unicode][vector0+vector1]
+        piece01 = learned[key][vector0+vector1]
         piece0, piece1 = halve(piece01)
 
         piece0 = positionFlatOutline(piece0, position0)
@@ -416,6 +433,7 @@ fb.font['avar'] = font['avar']
 print("Saving %s" % file_name)
 fb.save(file_name)
 
+sys.exit()
 
 style_name = "smarties-variable"
 file_name = "fonts/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name)
