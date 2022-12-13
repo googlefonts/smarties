@@ -122,7 +122,13 @@ def matchOutline(shape, ref, partial=False):
 
     # We have a matching. Reorder contours and return
     reordered = []
+    matched = set()
     for c in cols:
+        matched.add(c)
         reordered.append(shape[c])
+    # Append any contours not matched
+    for i in range(len(shape)):
+        if i in matched: continue
+        reordered.append(shape[i])
 
     return reordered, cost, cols.tolist()
