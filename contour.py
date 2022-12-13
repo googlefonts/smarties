@@ -139,3 +139,9 @@ def matchOutline(shape, ref, partial=False):
         assignment.append(c[2])
 
     return reordered, cost, assignment
+
+def reorderAssignment(lst, assignment):
+    new = [None] * len(lst)
+    for i,j in enumerate(assignment):
+        new[i] = lst[j]
+    return new

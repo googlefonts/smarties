@@ -98,13 +98,14 @@ alternates = defaultdict(list)
 otherAlternates = defaultdict(list)
 Hbuild2 = {}
 for H in Hbuild:
-    Hshape = shapes[w0][H]
+    Hshape0 = shapes[w0][H]
+    Hshape1 = shapes[w0][H]
     kangxis = [b[0] for b in Hbuild[H]]
     kangxiUnicodeLists = []
     for kangxi in kangxis:
         kangxiUnicodeLists.append(kangxiUnicodes.get(kangxi, []))
 
-    bestMatchedOutline = None
+    bestMatchedOutline0 = None
     bestCost = 1e20
     bestAssignment = None
     bestUnicodeList = None
@@ -114,37 +115,43 @@ for H in Hbuild:
         for radical in unicodeList:
             Rshape.extend(shapes[w0][radical])
 
-        if len(Hshape) < len(Rshape): continue
+        if len(Hshape0) < len(Rshape): continue
 
-        matchedOutline,cost,assignment = matchOutline(Hshape, Rshape, partial=True)
+        matchedOutline,cost,assignment = matchOutline(Hshape0, Rshape, partial=True)
 
         if matchedOutline and cost < bestCost:
-            bestMatchedOutline = matchedOutline
+            bestMatchedOutline0 = matchedOutline
             bestCost = cost
             bestAssignment = assignment
             bestUnicodeList = unicodeList
 
-    if bestMatchedOutline:
+    if bestMatchedOutline0:
         num_matched += 1
         matches.add(H)
+
+        bestMatchedOutline1 = reorderAssignment(shapes[w1][H], bestAssignment)
+        assert len(bestMatchedOutline0) == len(bestMatchedOutline1)
+
         offset = 0;
         rShapes = []
         for radical in unicodeList:
             baseRshape = shapes[w0][radical]
             Rlen = len(baseRshape)
-            rShape = Hshape[offset:offset+Rlen]
+            rShape0 = bestMatchedOutline0[offset:offset+Rlen]
+            rShape1 = bestMatchedOutline1[offset:offset+Rlen]
             offset += Rlen
 
-            rShapes.append((radical, rShape))
-            alternates[radical].append(rShape)
+            rShapes.append((radical, rShape0, rShape1))
+            alternates[radical].append(rShape0 + rShape1)
 
-        otherStrokes = Hshape[offset:]
+        otherStrokes0 = bestMatchedOutline0[offset:]
+        otherStrokes1 = bestMatchedOutline1[offset:]
         structure = ''
-        if otherStrokes:
-            structure = outlineStructure(otherStrokes)
-            otherAlternates[structure].append(otherStrokes)
+        if otherStrokes0:
+            structure = outlineStructure(otherStrokes0)
+            otherAlternates[structure].append(otherStrokes0 + otherStrokes1)
 
-        Hbuild2[H] = (rShapes, (structure, otherStrokes))
+        Hbuild2[H] = (rShapes, (structure, otherStrokes0, otherStrokes1))
 
     else:
         not_matched += 1
@@ -154,8 +161,7 @@ print("matched: %d not matched: %d." % (num_matched, not_matched))
 print("%d kangxi matched %d instances." % (len(alternates), sum(len(a) for a in alternates.values())))
 print("%d other-strokes.", len(otherAlternates))
 
-sys.exit()
-
+"""
 print("Learning.")
 learned = {}
 structs = {}
@@ -311,6 +317,7 @@ for unicode,alts in sorted(alternates.items()):
             print(s, file=fd)
             x += upem
         print('</svg>', file=fd)
+"""
 
 
 print("Building fonts")
@@ -325,20 +332,27 @@ fb = createFontBuilder(font, FAMILY_NAME, style_name, matches)
 glyphSets = {}
 for weight in WEIGHTS:
     glyphSets[weight] = {".notdef": Glyph()}
-for S in matches:
-    glyphName = cmap[S]
+for H in matches:
+    glyphName = cmap[H]
     pens = []
     commands = []
     for i,weight in enumerate(WEIGHTS):
         pens.append(createTTGlyphPen())
-        build = Sbuild[S]
-        order = build[0]
-        pieces = build[i+1]
+        build = Hbuild2[H]
+
+        rShapes = build[0]
+        otherStrokes = build[1]
+
         command = []
-        for piece in pieces:
-            if not piece: continue
-            for contour in piece:
+        for rShape in rShapes:
+            shape = rShape[i+1]
+            for contour in shape:
                 command.extend(contour)
+
+        shape = otherStrokes[i+1]
+        for contour in shape:
+            command.extend(contour)
+
         commands.append(command)
     cu2quPen = createCu2QuMultiPen(pens)
     replayCommandsThroughCu2QuMultiPen(commands, cu2quPen)
@@ -354,6 +368,7 @@ fb.font['avar'] = font['avar']
 print("Saving %s" % file_name)
 fb.save(file_name)
 
+sys.exit()
 
 style_name = "flat-variable"
 file_name = "fonts/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name)
