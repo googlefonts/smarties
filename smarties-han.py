@@ -331,7 +331,7 @@ print("Building fonts")
 
 style_name = "flat-original-variable"
 file_name = "fonts/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name)
-print("Building %s font" % file_name)
+print("Building %s" % file_name)
 
 fb = createFontBuilder(font, FAMILY_NAME, style_name, matches)
 
@@ -371,7 +371,7 @@ fb.save(file_name)
 
 style_name = "flat-variable"
 file_name = "fonts/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name)
-print("Building %s font" % file_name)
+print("Building %s" % file_name)
 
 fb = createFontBuilder(font, FAMILY_NAME, style_name, matches)
 
@@ -436,7 +436,7 @@ fb.save(file_name)
 
 style_name = "smarties-variable"
 file_name = "fonts/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name)
-print("Building %s font" % file_name)
+print("Building %s" % file_name)
 
 components = []
 componentNames = {}
