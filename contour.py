@@ -120,6 +120,8 @@ def matchOutline(shape, ref, partial=False):
     if cost >= 1e10:
         return None, 1e10, None
 
+    assignment = cols.tolist()
+
     # We have a matching. Reorder contours and return
     reordered = []
     matched = set()
@@ -130,9 +132,10 @@ def matchOutline(shape, ref, partial=False):
     other = []
     for i in range(len(shape)):
         if i in matched: continue
-        other.append((shapeStructs[i], shape[i]))
+        other.append((shapeStructs[i], shape[i], i))
     other = sorted(other)
     for c in other:
         reordered.append(c[1])
+        assignment.append(c[2])
 
-    return reordered, cost, cols.tolist()
+    return reordered, cost, assignment
