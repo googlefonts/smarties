@@ -386,25 +386,6 @@ for H in matches:
         pens.append(createTTGlyphPen())
         commands.append([])
 
-    """
-        command = []
-        for rShape in rShapes:
-            shape = rShape[i+1]
-
-            position1 = outlinePosition(piece1)
-            vector1 = outlineVector(piece1)
-
-            piece01 = learned[unicode][vector0+vector1]
-            piece0, piece1 = halve(piece01)
-
-            piece0 = positionFlatOutline(piece0, position0)
-            piece1 = positionFlatOutline(piece1, position1)
-            commands[0].extend(piece0)
-
-            for contour in shape:
-                command.extend(contour)
-    """
-
     for key,piece0,piece1 in Hbuild2[H]:
         position0 = outlinePosition(piece0)
         vector0 = outlineVector(piece0)
