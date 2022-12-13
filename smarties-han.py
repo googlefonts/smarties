@@ -115,7 +115,7 @@ with open("ids.txt") as f:
         unicode = int(fields[0][2:], 16)
         unichar = fields[1]
         if unicode not in cmap: continue
-        build = fields[2]
+        build = fields[2].split('[')[0]
 
         if any(isCircledNumber(u) for u in build):
             continue
