@@ -249,7 +249,7 @@ for unicode,alts in sorted(alternates.items()):
                 SVGs.append(commands)
 
     scale = .1
-    with open("fonts/%s/svg/hangul/U+%04X.svg" % (serif, unicode), "w") as fd:
+    with open("fonts/hangul/%s/svg/U+%04X.svg" % (serif, unicode), "w") as fd:
 
         cols = 16
         width = upem * (cols + 1)
@@ -282,7 +282,7 @@ print("Building fonts")
 
 
 style_name = "flat-original-variable"
-file_name = "fonts/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name)
+file_name = "fonts/hangul/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name)
 print("Building %s" % file_name)
 
 fb = createFontBuilder(font, FAMILY_NAME, style_name, matches)
@@ -321,7 +321,7 @@ fb.save(file_name)
 
 
 style_name = "flat-variable"
-file_name = "fonts/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name)
+file_name = "fonts/hangul/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name)
 print("Building %s" % file_name)
 
 fb = createFontBuilder(font, FAMILY_NAME, style_name, matches)
@@ -368,7 +368,7 @@ fb.save(file_name)
 
 
 style_name = "smarties-variable"
-file_name = "fonts/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name)
+file_name = "fonts/hangul/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name)
 print("Building %s" % file_name)
 
 components = []
