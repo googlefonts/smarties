@@ -61,39 +61,39 @@ class IdeoDescription(IntEnum):
         return 0x2FF0 <= u <= 0x2FFB
 
     def getTransformations(self, upem):
-        if desc == self.LEFT_TO_RIGHT: # ⿰
+        if self == self.LEFT_TO_RIGHT: # ⿰
             t0 = Identity.scale(0.5, 1.0)
             t1 = Identity.translate(0.5*upem, 0.0).scale(0.5, 1.0)
-        elif desc == self.ABOVE_TO_BELOW: # ⿱
+        elif self == self.ABOVE_TO_BELOW: # ⿱
             t0 = Identity.translate(0.0, 0.5*upem).scale(1.0, 0.5)
             t1 = Identity.scale(1.0, 0.5)
             return t0, t1
-        elif desc == self.LEFT_TO_MIDDLE_AND_RIGHT: # ⿲
+        elif self == self.LEFT_TO_MIDDLE_AND_RIGHT: # ⿲
             raise NotImplementedError
-        elif desc == self.ABOVE_TO_MIDDLE_AND_BELOW: # ⿳
+        elif self == self.ABOVE_TO_MIDDLE_AND_BELOW: # ⿳
             raise NotImplementedError
-        elif desc == self.FULL_SURROUND: # ⿴
+        elif self == self.FULL_SURROUND: # ⿴
             t0 = Identity
             t1 = Identity.translate(0.1*upem, 0.1*upem).scale(0.8, 0.8)
-        elif desc == self.SURROUND_FROM_ABOVE: # ⿵
+        elif self == self.SURROUND_FROM_ABOVE: # ⿵
             t0 = Identity
             t1 = Identity.translate(0.1*upem, 0.0).scale(0.8, 0.8)
-        elif desc == self.SURROUND_FROM_BELOW: # ⿶
+        elif self == self.SURROUND_FROM_BELOW: # ⿶
             t0 = Identity
             t1 = Identity.translate(0.1*upem, 0.2*upem).scale(0.8, 0.8)
-        elif desc == self.SURROUND_FROM_LEFT: # ⿷
+        elif self == self.SURROUND_FROM_LEFT: # ⿷
             t0 = Identity
             t1 = Identity.translate(0.2*upem, 0.1*upem).scale(0.8, 0.8)
-        elif desc == self.SURROUND_FROM_UPPER_LEFT: # ⿸
+        elif self == self.SURROUND_FROM_UPPER_LEFT: # ⿸
             t0 = Identity
             t1 = Identity.translate(0.2*upem, 0.0).scale(0.8, 0.8)
-        elif desc == self.SURROUND_FROM_UPPER_RIGHT: # ⿹
+        elif self == self.SURROUND_FROM_UPPER_RIGHT: # ⿹
             t0 = Identity
             t1 = Identity.scale(0.8, 0.8)
-        elif desc == self.SURROUND_FROM_LOWER_LEFT: # ⿺
+        elif self == self.SURROUND_FROM_LOWER_LEFT: # ⿺
             t0 = Identity
             t1 = Identity.translate(0.2*upem, 0.2*upem).scale(0.8, 0.8)
-        elif desc == self.self.OVERLAID:
+        elif self == self.OVERLAID:
             t0 = Identity
             t1 = Identity
         else:
