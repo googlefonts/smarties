@@ -204,7 +204,8 @@ for H,build in list(Hbuild.items()):
     Hshape0 = shapes[w0][H]
     Hshape1 = shapes[w0][H]
 
-    recursiveBuild,_ = recurseBuild(build)
+    recursiveBuild,build = recurseBuild(build)
+    assert not build
     HbuildRecursive[H] = recursiveBuild
 
     Rshape = []
