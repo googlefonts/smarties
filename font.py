@@ -29,7 +29,7 @@ def createFontBuilder(font, family_name, style, chars, extraGlyphs=[]):
     fb.setupHorizontalHeader(ascent=hhea.ascent, descent=hhea.descent)
     os2 = font['OS/2']
     fb.setupOS2(sTypoAscender=os2.sTypoAscender, usWinAscent=os2.usWinAscent, usWinDescent=os2.usWinDescent)
-    fb.setupPost()
+    fb.setupPost(keepGlyphNames=False)
 
     return fb
 
