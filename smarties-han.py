@@ -132,8 +132,6 @@ with open("ids.txt") as f:
 
         Hbuild[unicode] = (IdeoDescription(ord(build[0])), ord(build[1]), ord(build[2]))
 
-#print("%d bases and %d ideographs." % (len(bases), len(Hbuild)))
-
 # Prune to ideographs that are recursively fully available
 changed = True
 while changed:
@@ -145,7 +143,7 @@ while changed:
             del Hbuild[H]
             changed = True
 
-print("%d bases and %d ideographs." % (len(bases), len(Hbuild)))
+print("%d bases; %d ideographs to be matched." % (len(bases), len(Hbuild)))
 
 # Build recursive structure
 
