@@ -134,7 +134,7 @@ with open("ids.txt") as f:
 
         Hbuild[unicode] = tuple(ord(b) for b in build)
 
-# Prune to ideographs that are recursively fully available
+# Prune to ideographs that are not recursively fully available
 changed = True
 while changed:
     changed = False
