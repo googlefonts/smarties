@@ -249,7 +249,7 @@ for unicode,alts in sorted(alternates.items()):
                 SVGs.append(commands)
 
     scale = .1
-    with open("fonts/%s/svg/U+%04X.svg" % (serif, unicode), "w") as fd:
+    with open("fonts/%s/svg/hangul/U+%04X.svg" % (serif, unicode), "w") as fd:
 
         cols = 16
         width = upem * (cols + 1)
