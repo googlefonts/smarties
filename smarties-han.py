@@ -123,24 +123,22 @@ with open("ids.txt") as f:
             bases.add(unicode)
             continue
 
-        if not (len(build) == 3 and IdeoDescription.isIdeoDescription(build[0])):
+        if any(ord(b) not in cmap for b in build):
             continue
 
-        if ord(build[1]) not in cmap or ord(build[2]) not in cmap:
-            continue
-
-        Hbuild[unicode] = (IdeoDescription(ord(build[0])), ord(build[1]), ord(build[2]))
+        Hbuild[unicode] = tuple(ord(b) for b in build)
 
 # Prune to ideographs that are recursively fully available
 changed = True
 while changed:
     changed = False
     for H,build in list(Hbuild.items()):
-        desc,u0,u1 = build
-        if not ((u0 in Hbuild or u0 in bases) and
-                (u1 in Hbuild or u1 in bases)):
-            del Hbuild[H]
-            changed = True
+        for u in build:
+            if not (IdeoDescription.isIdeoDescription(u) or
+                    u in Hbuild or u in bases):
+                del Hbuild[H]
+                break
+                changed = True
 
 print("%d bases; %d ideographs to be matched." % (len(bases), len(Hbuild)))
 
@@ -169,10 +167,11 @@ print("Gathering components.")
 
 def recurseBuild(build, t = Identity):
     desc,u0,u1 = build
-    trans0,trans1 = desc.getTransformations(upem)
-    # TODO Is the order correct?
+    trans0,trans1 = IdeoDescription(desc).getTransformations(upem)
+
     trans0.transform(t)
     trans1.transform(t)
+
     ret = []
     for trans,base in ((trans0,u0), (trans1,u1)):
         if base in bases:
