@@ -253,7 +253,9 @@ componentDefaultMaster = {}
 componentMasters = {}
 componentDeltas = {}
 componentCoordinates = {}
+total_matches = 0
 for key,alts in alternates.items():
+    total_matches += len(alts)
     if type(key) == int:
         #print("U+%04X: Structure matched %d." % (key, len(alts)))
         pass
@@ -401,6 +403,7 @@ for key,alts in alternates.items():
             print(s, file=fd)
             x += upem
         print('</svg>', file=fd)
+print("Total matches %d for %d components." % (total_matches, len(alternates)))
 
 
 print("Building fonts")
