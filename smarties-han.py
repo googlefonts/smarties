@@ -134,7 +134,7 @@ for H in Hbuild:
 
         offset = 0;
         rShapes = []
-        for radical in unicodeList:
+        for radical in bestUnicodeList:
             baseRshape = shapes[w0][radical]
             Rlen = len(baseRshape)
             rShape0 = bestMatchedOutline0[offset:offset+Rlen]
@@ -244,17 +244,17 @@ for key,alts in alternates.items():
     print("Num masters %d max error %d mean-squared error %g" % (k+1, maxError, meanSqError))
 
     defaultMasterPenValues = reconstructRecordingPenValues(structure, defaultMaster.tolist()[0])
-    componentDefaultMaster[unicode] = defaultMasterPenValues
+    componentDefaultMaster[key] = defaultMasterPenValues
     masters = [defaultMasterPenValues]
-    componentDeltas[unicode] = []
+    componentDeltas[key] = []
     for delta in deltas:
-        componentDeltas[unicode].append(reconstructRecordingPenValues(structure, delta.tolist()[0]))
+        componentDeltas[key].append(reconstructRecordingPenValues(structure, delta.tolist()[0]))
         values = reconstructRecordingPenValues(structure, (defaultMaster+delta).tolist()[0])
         masters.append(values)
-    componentMasters[unicode] = masters
+    componentMasters[key] = masters
 
     instances = []
-    componentCoordinates[unicode] = {}
+    componentCoordinates[key] = {}
     for scalars in u:
         instance = np.matrix(defaultMaster)
         scals = scalars.tolist()[0]
@@ -262,18 +262,21 @@ for key,alts in alternates.items():
             instance += scalar * delta
         instance = np.round(instance)
         instance = tuple(instance.tolist()[0])
-        componentCoordinates[unicode][instance] = scals
+        componentCoordinates[key][instance] = scals
         values = reconstructRecordingPenValues(structure, instance)
         instances.append(values)
 
-    learned[unicode] = {}
+    learned[key] = {}
     for s,i in zip(samples,instances):
-        learned[unicode][s] = i
+        learned[key][s] = i
 
 
     unique_instances = set(tuple(i) for i in instances)
     print("Num instances %d num unique instances %d" % (len(instances), len(unique_instances)))
     del unique_instances
+
+    if type(key) != int:
+        continue
 
     originals = []
     for sample in samples:
@@ -294,7 +297,7 @@ for key,alts in alternates.items():
                 SVGs.append(commands)
 
     scale = .1
-    with open("fonts/%s/svg/U+%04X.svg" % (serif, unicode), "w") as fd:
+    with open("fonts/%s/svg/han/U+%04X.svg" % (serif, key), "w") as fd:
 
         cols = 16
         width = upem * (cols + 1)
