@@ -152,3 +152,12 @@ def reorderAssignment(lst, assignment):
     for i,j in enumerate(assignment):
         new[i] = lst[j]
     return new
+
+def transformOutline(trans, outline):
+    out = []
+    for contour in outline:
+        new = []
+        for op,args in contour:
+            new.append((op, tuple(trans.transformPoints(args))))
+        out.append(new)
+    return out
