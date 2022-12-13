@@ -142,14 +142,14 @@ for H in Hbuild:
             offset += Rlen
 
             rShapes.append((radical, rShape0, rShape1))
-            alternates[radical].append(rShape0 + rShape1)
+            alternates[radical].append((rShape0, rShape1))
 
         otherStrokes0 = bestMatchedOutline0[offset:]
         otherStrokes1 = bestMatchedOutline1[offset:]
         structure = ''
         if otherStrokes0:
             structure = outlineStructure(otherStrokes0)
-            otherAlternates[structure].append(otherStrokes0 + otherStrokes1)
+            otherAlternates[structure].append((otherStrokes0, otherStrokes1))
 
             rShapes.append((structure, otherStrokes0, otherStrokes1))
 
@@ -166,7 +166,6 @@ print("%d other-strokes." % len(otherAlternates))
 alternates.update(otherAlternates)
 del otherAlternates
 
-"""
 print("Learning.")
 learned = {}
 structs = {}
@@ -174,11 +173,12 @@ componentDefaultMaster = {}
 componentMasters = {}
 componentDeltas = {}
 componentCoordinates = {}
-for unicode,alts in sorted(alternates.items()):
-    print("U+%04X: Structure matched %d." % (unicode, len(alts)))
+for key,alts in alternates.items():
+    if type(key) == int:
+        print("U+%04X: Structure matched %d." % (key, len(alts)))
 
-    structure = outlineStructure(alts[0][0])
-    structs[unicode] = structure
+    structure = outlineStructure(alts[0][0]) * len(WEIGHTS)
+    structs[key] = structure
     samples = []
     for alt0,alt1 in alts:
         samples.append(outlineVector(alt0) + outlineVector(alt1))
@@ -253,7 +253,6 @@ for unicode,alts in sorted(alternates.items()):
         masters.append(values)
     componentMasters[unicode] = masters
 
-
     instances = []
     componentCoordinates[unicode] = {}
     for scalars in u:
@@ -322,7 +321,6 @@ for unicode,alts in sorted(alternates.items()):
             print(s, file=fd)
             x += upem
         print('</svg>', file=fd)
-"""
 
 
 print("Building fonts")

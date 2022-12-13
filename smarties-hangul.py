@@ -49,10 +49,6 @@ def decomposeS(S):
     T = Tindex + TBase if Tindex else None
     return (L,V,T)
 
-def halve(l):
-    n = len(l) // 2
-    return l[:n], l[n:]
-
 WEIGHTS = None
 for axis in font['fvar'].axes:
     if axis.axisTag == 'wght':

@@ -3,12 +3,19 @@ from scipy.optimize import linear_sum_assignment
 from fontTools.pens.recordingPen import RecordingPen
 from fontTools.pens.statisticsPen import StatisticsPen
 
+
+def halve(l):
+    n = len(l) // 2
+    return l[:n], l[n:]
+
 def contourStructure(contour):
     # Use second byte of the operation name (curveTo, closePath, etc),
     # as that's unique.
     return ''.join(op[0][1] for op in contour)
 
-def outlineStructure(outline):
+def outlineStructure(outline, flat=False):
+    if flat:
+        return contourStructure(outline)
     return ''.join(contourStructure(contour) for contour in outline)
 
 def outlinePosition(outline):
