@@ -442,7 +442,6 @@ fb.font['avar'] = font['avar']
 print("Saving %s" % file_name)
 fb.save(file_name)
 
-sys.exit()
 
 style_name = "flat-variable"
 file_name = "fonts/han/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name)
@@ -460,25 +459,6 @@ for H in matches:
     for i,weight in enumerate(WEIGHTS):
         pens.append(createTTGlyphPen())
         commands.append([])
-
-    """
-        command = []
-        for rShape in rShapes:
-            shape = rShape[i+1]
-
-            position1 = outlinePosition(piece1)
-            vector1 = outlineVector(piece1)
-
-            piece01 = learned[unicode][vector0+vector1]
-            piece0, piece1 = halve(piece01)
-
-            piece0 = positionFlatOutline(piece0, position0)
-            piece1 = positionFlatOutline(piece1, position1)
-            commands[0].extend(piece0)
-
-            for contour in shape:
-                command.extend(contour)
-    """
 
     for key,piece0,piece1 in Hbuild2[H]:
         position0 = outlinePosition(piece0)
@@ -508,6 +488,7 @@ fb.font['avar'] = font['avar']
 print("Saving %s" % file_name)
 fb.save(file_name)
 
+sys.exit()
 
 style_name = "smarties-variable"
 file_name = "fonts/han/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name)
