@@ -68,9 +68,15 @@ class IdeoDescription(IntEnum):
             t0 = Identity.translate(0.0, 0.5*upem).scale(1.0, 0.5)
             t1 = Identity.scale(1.0, 0.5)
         elif self == self.LEFT_TO_MIDDLE_AND_RIGHT: # ⿲
-            raise NotImplementedError
+            t0 = Identity.translate(0.0, 0.0).scale(1/3, 1.0)
+            t1 = Identity.translate(upem/3, 0.0).scale(1/3, 1.0)
+            t2 = Identity.translate(2*upem/3, 0.0).scale(1/3, 1.0)
+            return t0, t1, t2
         elif self == self.ABOVE_TO_MIDDLE_AND_BELOW: # ⿳
-            raise NotImplementedError
+            t0 = Identity.translate(0.0, 2*upem/3).scale(1.0, 1/3)
+            t1 = Identity.translate(0.0, upem/3).scale(1.0, 1/3)
+            t2 = Identity.translate(0.0, 0.0).scale(1.0, 1/3)
+            return t0, t1, t2
         elif self == self.FULL_SURROUND: # ⿴
             t0 = Identity
             t1 = Identity.translate(0.1*upem, 0.1*upem).scale(0.8, 0.8)
@@ -137,8 +143,8 @@ while changed:
             if not (IdeoDescription.isIdeoDescription(u) or
                     u in Hbuild or u in bases):
                 del Hbuild[H]
-                break
                 changed = True
+                break
 
 print("%d bases; %d ideographs to be matched." % (len(bases), len(Hbuild)))
 
@@ -166,19 +172,24 @@ for weight in WEIGHTS:
 print("Gathering components.")
 
 def recurseBuild(build, t = Identity):
-    desc,u0,u1 = build
-    trans0,trans1 = IdeoDescription(desc).getTransformations(upem)
+    b = build[0]
+    build = build[1:]
 
-    trans0.transform(t)
-    trans1.transform(t)
+    if not IdeoDescription.isIdeoDescription(b):
+        if b in bases:
+            return [(t, b)], build
+        else:
+            return recurseBuild(Hbuild[b], t)[0], build
+
+    transformations = IdeoDescription(b).getTransformations(upem)
 
     ret = []
-    for trans,base in ((trans0,u0), (trans1,u1)):
-        if base in bases:
-            ret.append((trans, base))
-        else:
-            ret.extend(recurseBuild(Hbuild[base], trans))
-    return ret
+    for trans in transformations:
+        trans.transform(t)
+        values, build = recurseBuild(build, trans)
+        ret.extend(values)
+
+    return ret, build
 
 w0,w1 = WEIGHTS
 matches = set()
@@ -193,7 +204,7 @@ for H,build in list(Hbuild.items()):
     Hshape0 = shapes[w0][H]
     Hshape1 = shapes[w0][H]
 
-    recursiveBuild = recurseBuild(build)
+    recursiveBuild,_ = recurseBuild(build)
     HbuildRecursive[H] = recursiveBuild
 
     Rshape = []
