@@ -433,7 +433,6 @@ fb.font['avar'] = font['avar']
 print("Saving %s" % file_name)
 fb.save(file_name)
 
-sys.exit()
 
 style_name = "smarties-variable"
 file_name = "fonts/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name)
@@ -441,10 +440,15 @@ print("Building %s font" % file_name)
 
 components = []
 componentNames = {}
-for unicode in learned.keys():
+i = 0
+for key in learned.keys():
     # Give name to each learned item:
-    name = "uni%04X" % unicode
-    componentNames[unicode] = name
+    if type(key) == int:
+        name = "uni%04X" % key
+    else:
+        name = "comp%d" % i
+        i += 1
+    componentNames[key] = name
     components.append(name)
 
 fb = createFontBuilder(font, FAMILY_NAME, style_name, matches, components)
@@ -503,23 +507,29 @@ for unicode in learned.keys():
 
 # Write out composites.
 reverseGlyphMap = fb.font.getReverseGlyphMap()
-for S in matches:
-    glyphName = cmap[S]
-    order0,pieces0,pieces1 = Sbuild[S]
+for H in matches:
+    glyphName = cmap[H]
+    keys = []
+    pieces0 = []
+    pieces1 = []
+    for key,piece0,piece1 in Hbuild2[H]:
+        pieces0.append(piece0)
+        pieces1.append(piece1)
+
     glyph = Glyph()
 
     boundsPen = ControlBoundsPen(None)
     rPen = RecordingPen()
-    for order,piece in zip(order0,pieces0):
+    for _,piece,_ in Hbuild2[H]:
         for contour in piece:
             rPen.value.extend(contour)
     rPen.replay(boundsPen)
     b = [otRound(v) for v in boundsPen.bounds]
     data = bytearray(struct.pack(">hhhhh", -2, b[0], b[1], b[2], b[3]))
     variation = []
-    for componentUnicode,piece0,piece1 in zip(order0,pieces0,pieces1):
+    for componentKey,piece0,piece1 in Hbuild2[H]:
         if not piece0: continue
-        componentName = componentNames[componentUnicode]
+        componentName = componentNames[componentKey]
 
         position0 = outlinePosition(piece0)
         position0 = [otRound(v) for v in position0]
@@ -528,9 +538,9 @@ for S in matches:
 
         vector0 = outlineVector(piece0)
         vector1 = outlineVector(piece1)
-        piece = learned[componentUnicode][vector0+vector1]
+        piece = learned[componentKey][vector0+vector1]
         vector = outlineVector(piece, flat=True)
-        coordinates = componentCoordinates[componentUnicode][vector]
+        coordinates = componentCoordinates[componentKey][vector]
 
         # Build glyph data
 
