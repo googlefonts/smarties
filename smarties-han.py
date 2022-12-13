@@ -488,7 +488,6 @@ fb.font['avar'] = font['avar']
 print("Saving %s" % file_name)
 fb.save(file_name)
 
-sys.exit()
 
 style_name = "smarties-variable"
 file_name = "fonts/han/%s/%s-%s.ttf" % (serif,FAMILY_NAME, style_name)
@@ -499,11 +498,7 @@ componentNames = {}
 i = 0
 for key in learned.keys():
     # Give name to each learned item:
-    if type(key) == int:
-        name = "uni%04X.comp" % key
-    else:
-        name = "comp%d" % i
-        i += 1
+    name = "uni%04X.comp" % key
     componentNames[key] = name
     components.append(name)
 
