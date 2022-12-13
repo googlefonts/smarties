@@ -18,8 +18,8 @@ import math
 import sys
 
 if len(sys.argv) < 2:
-    print("usage: python smarties-hangul.py NotoSerifCJKtc-VF.otf")
-    print("usage: python smarties-hangul.py NotoSansCJKtc-VF.otf")
+    print("usage: python smarties-han-unicode.py NotoSerifCJKtc-VF.otf")
+    print("usage: python smarties-han-unicode.py NotoSansCJKtc-VF.otf")
     sys.exit(1)
 
 fontfile = sys.argv[1]
