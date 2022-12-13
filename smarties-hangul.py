@@ -146,7 +146,7 @@ componentMasters = {}
 componentDeltas = {}
 componentCoordinates = {}
 for unicode,alts in sorted(alternates.items()):
-    print("U+%04X: Structure matched %d." % (unicode, len(alts)))
+    #print("U+%04X: Structure matched %d." % (unicode, len(alts)))
 
     structure = outlineStructure(alts[0][0]) * len(WEIGHTS)
     structs[unicode] = structure
@@ -212,7 +212,7 @@ for unicode,alts in sorted(alternates.items()):
     error = reconst - mat
     maxError = np.max(error)
     meanSqError = np.mean(np.square(error))
-    print("Num masters %d max error %d mean-squared error %g" % (k+1, maxError, meanSqError))
+    #print("Num masters %d max error %d mean-squared error %g" % (k+1, maxError, meanSqError))
 
     defaultMasterPenValues = reconstructRecordingPenValues(structure, defaultMaster.tolist()[0])
     componentDefaultMaster[unicode] = defaultMasterPenValues
@@ -244,7 +244,7 @@ for unicode,alts in sorted(alternates.items()):
 
 
     unique_instances = set(tuple(i) for i in instances)
-    print("Num instances %d num unique instances %d" % (len(instances), len(unique_instances)))
+    #print("Num instances %d num unique instances %d" % (len(instances), len(unique_instances)))
     del unique_instances
 
     originals = []
