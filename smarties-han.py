@@ -444,7 +444,7 @@ i = 0
 for key in learned.keys():
     # Give name to each learned item:
     if type(key) == int:
-        name = "uni%04X" % key
+        name = "uni%04X.comp" % key
     else:
         name = "comp%d" % i
         i += 1
