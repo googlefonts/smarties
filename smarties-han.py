@@ -151,7 +151,9 @@ for H in Hbuild:
             structure = outlineStructure(otherStrokes0)
             otherAlternates[structure].append(otherStrokes0 + otherStrokes1)
 
-        Hbuild2[H] = (rShapes, (structure, otherStrokes0, otherStrokes1))
+            rShapes.append((structure, otherStrokes0, otherStrokes1))
+
+        Hbuild2[H] = rShapes
 
     else:
         not_matched += 1
@@ -159,7 +161,10 @@ for H in Hbuild:
 print("matched: %d not matched: %d." % (num_matched, not_matched))
 
 print("%d kangxi matched %d instances." % (len(alternates), sum(len(a) for a in alternates.values())))
-print("%d other-strokes.", len(otherAlternates))
+print("%d other-strokes." % len(otherAlternates))
+
+alternates.update(otherAlternates)
+del otherAlternates
 
 """
 print("Learning.")
@@ -338,10 +343,7 @@ for H in matches:
     commands = []
     for i,weight in enumerate(WEIGHTS):
         pens.append(createTTGlyphPen())
-        build = Hbuild2[H]
-
-        rShapes = build[0]
-        otherStrokes = build[1]
+        rShapes = Hbuild2[H]
 
         command = []
         for rShape in rShapes:
@@ -349,11 +351,8 @@ for H in matches:
             for contour in shape:
                 command.extend(contour)
 
-        shape = otherStrokes[i+1]
-        for contour in shape:
-            command.extend(contour)
-
         commands.append(command)
+
     cu2quPen = createCu2QuMultiPen(pens)
     replayCommandsThroughCu2QuMultiPen(commands, cu2quPen)
     for i,weight in enumerate(WEIGHTS):
