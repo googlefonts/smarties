@@ -125,4 +125,4 @@ def matchOutline(shape, ref, partial=False):
     for c in cols:
         reordered.append(shape[c])
 
-    return reordered, cost, cols.tolist()[0]
+    return reordered, cost, cols.tolist()
