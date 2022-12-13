@@ -3,6 +3,7 @@ from font import *
 
 from fontTools.ttLib import TTFont
 from fontTools.misc.roundTools import otRound
+from fontTools.misc.transform import Transform, Identity
 from fontTools.pens.recordingPen import RecordingPen
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.svgPathPen import main as svgMain
@@ -93,7 +94,23 @@ for S in range(SBase, SBase+SCount):
         continue
 
     Sshape = shapes[w0][S]
-    Pshape = shapes[w0][L] + shapes[w0][V] + shapes[w0][T]
+
+    Lshape = shapes[w0][L]
+    Vshape = shapes[w0][V]
+    Tshape = shapes[w0][T]
+
+    Ltrans = Identity.translate(0.0, 0.2*upem).scale(0.8, 0.8)
+    Lshape = transformOutline(Ltrans, Lshape)
+    Vtrans = Identity.translate(0.2*upem, 0.0).scale(0.8, 0.8)
+    Vshape = transformOutline(Vtrans, Vshape)
+    if Tshape:
+        LVtrans = Identity.translate(0.0, 0.4*upem).scale(1.0, 0.6)
+        Lshape = transformOutline(LVtrans, Lshape)
+        Vshape = transformOutline(LVtrans, Vshape)
+        Ttrans = Identity.scale(1.0, 0.4)
+        Tshape = transformOutline(Ttrans, Tshape)
+
+    Pshape = Lshape + Vshape + Tshape
     matchedOutline,_,assignment0 = matchOutline(Sshape, Pshape)
 
     if matchedOutline:
