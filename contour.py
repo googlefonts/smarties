@@ -85,8 +85,9 @@ def contourVector(c):
 def matchingCost(G, matching):
     return sum(G[i][j] for i, j in enumerate(matching))
 
-def matchOutline(shape, ref):
-    assert len(shape) == len(ref)
+def matchOutline(shape, ref, partial=False):
+    if not partial:
+        assert len(shape) == len(ref)
     if not len(shape): return shape, 0, []
 
     # Shortcut: If structures match assume it's correct.
