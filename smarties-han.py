@@ -96,6 +96,7 @@ num_matched = 0
 not_matched = 0
 alternates = defaultdict(list)
 otherAlternates = defaultdict(list)
+Hbuild2 = {}
 for H in Hbuild:
     Hshape = shapes[w0][H]
     kangxis = [b[0] for b in Hbuild[H]]
@@ -127,22 +128,31 @@ for H in Hbuild:
         num_matched += 1
         matches.add(H)
         offset = 0;
+        rShapes = []
         for radical in unicodeList:
             baseRshape = shapes[w0][radical]
             Rlen = len(baseRshape)
             rShape = Hshape[offset:offset+Rlen]
             offset += Rlen
 
+            rShapes.append((radical, rShape))
             alternates[radical].append(rShape)
 
         otherStrokes = Hshape[offset:]
+        structure = ''
         if otherStrokes:
             structure = outlineStructure(otherStrokes)
-            otherAlternates[structure] = otherStrokes
+            otherAlternates[structure].append(otherStrokes)
+
+        Hbuild2[H] = (rShapes, (structure, otherStrokes))
+
     else:
         not_matched += 1
 
-print("matched: %d not matched: %d" % (num_matched, not_matched))
+print("matched: %d not matched: %d." % (num_matched, not_matched))
+
+print("%d kangxi matched %d instances." % (len(alternates), sum(len(a) for a in alternates.values())))
+print("%d other-strokes.", len(otherAlternates))
 
 sys.exit()
 
@@ -156,7 +166,7 @@ componentCoordinates = {}
 for unicode,alts in sorted(alternates.items()):
     print("U+%04X: Structure matched %d." % (unicode, len(alts)))
 
-    structure = outlineStructure(alts[0][0]) * len(WEIGHTS)
+    structure = outlineStructure(alts[0][0])
     structs[unicode] = structure
     samples = []
     for alt0,alt1 in alts:
