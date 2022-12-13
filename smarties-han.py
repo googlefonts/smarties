@@ -67,7 +67,6 @@ class IdeoDescription(IntEnum):
         elif self == self.ABOVE_TO_BELOW: # ⿱
             t0 = Identity.translate(0.0, 0.5*upem).scale(1.0, 0.5)
             t1 = Identity.scale(1.0, 0.5)
-            return t0, t1
         elif self == self.LEFT_TO_MIDDLE_AND_RIGHT: # ⿲
             raise NotImplementedError
         elif self == self.ABOVE_TO_MIDDLE_AND_BELOW: # ⿳
@@ -144,12 +143,6 @@ while changed:
             changed = True
 
 print("%d bases; %d ideographs to be matched." % (len(bases), len(Hbuild)))
-
-# Build recursive structure
-
-HbuildRecursive = {}
-for H,build in list(Hbuild.items()):
-    desc,u0,u1 = build
 
 
 WEIGHTS = None
