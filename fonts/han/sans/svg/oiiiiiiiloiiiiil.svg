@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1700" height="300" xmlns="http://www.w3.org/2000/svg">
+<rect width="100%" height="100%" fill="white"/>
+<g fill="green" transform="translate(100 100) scale(0.1 -0.1)"><path d="M-0.0 0.0V-304.0V-643.0H29.0V-304.0V0.0ZM309.0 232.0V202.0H448.0V2.0H478.0V232.0Z"/></g>
+<g fill="green" transform="translate(200 100) scale(0.1 -0.1)"><path d="M0.0 0.0V-271.0H-14.0V-646.0H117.0V-271.0H103.0V0.0ZM354.0 275.0V153.0H454.0V-7.0H585.0V275.0Z"/></g>
+<g fill="green" transform="translate(300 100) scale(0.1 -0.1)"><path d="M0.0 0.0V-295.0V-621.0H28.0V-295.0V0.0ZM297.0 221.0V192.0H431.0V0.0H460.0V221.0Z"/></g>
+<g fill="green" transform="translate(400 100) scale(0.1 -0.1)"><path d="M0.0 0.0V-262.0H-13.0V-624.0H113.0V-262.0H99.0V0.0ZM341.0 263.0V145.0H437.0V-9.0H563.0V263.0Z"/></g>
+<g fill="green" transform="translate(500 100) scale(0.1 -0.1)"><path d="M-0.0 0.0V-191.0V-550.0H31.0V-191.0V0.0ZM323.0 356.0V325.0H467.0V117.0H498.0V356.0Z"/></g>
+<g fill="green" transform="translate(600 100) scale(0.1 -0.1)"><path d="M0.0 0.0V-195.0H-14.0V-561.0H123.0V-195.0H111.0V0.0ZM370.0 396.0V268.0H474.0V103.0H610.0V396.0Z"/></g>
+<g fill="red" transform="translate(100 200) scale(0.1 -0.1)"><path d="M0.0 0.0V-304.0V-643.0H29.0V-304.0V0.0ZM309.0 232.0V202.0H448.0V2.0H478.0V232.0Z"/></g>
+<g fill="black" opacity=".8" transform="translate(100 200) scale(0.1 -0.1)"><path d="M0.0 0.0V-304.0V-643.0H29.0V-304.0V0.0ZM309.0 232.0V202.0H448.0V2.0H478.0V232.0Z"/></g>
+<g fill="red" transform="translate(200 200) scale(0.1 -0.1)"><path d="M0.0 0.0V-271.0H-14.0V-646.0H117.0V-271.0H103.0V0.0ZM354.0 275.0V153.0H454.0V-7.0H585.0V275.0Z"/></g>
+<g fill="black" opacity=".8" transform="translate(200 200) scale(0.1 -0.1)"><path d="M0.0 0.0V-271.0H-14.0V-646.0H117.0V-271.0H103.0V0.0ZM354.0 275.0V153.0H454.0V-7.0H585.0V275.0Z"/></g>
+<g fill="red" transform="translate(300 200) scale(0.1 -0.1)"><path d="M0.0 0.0V-182.0V-528.0H30.0V-182.0V0.0ZM311.0 345.0V315.0H450.0V115.0H480.0V345.0Z"/></g>
+<g fill="black" opacity=".8" transform="translate(300 200) scale(0.1 -0.1)"><path d="M0.0 0.0V-182.0V-528.0H30.0V-182.0V0.0ZM311.0 345.0V315.0H450.0V115.0H480.0V345.0Z"/></g>
+<g fill="red" transform="translate(400 200) scale(0.1 -0.1)"><path d="M0.0 0.0V-186.0H-13.0V-539.0H119.0V-186.0H107.0V0.0ZM357.0 384.0V260.0H457.0V101.0H588.0V384.0Z"/></g>
+<g fill="black" opacity=".8" transform="translate(400 200) scale(0.1 -0.1)"><path d="M0.0 0.0V-186.0H-13.0V-539.0H119.0V-186.0H107.0V0.0ZM357.0 384.0V260.0H457.0V101.0H588.0V384.0Z"/></g>
+</svg>

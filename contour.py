@@ -121,7 +121,10 @@ def matchOutline(shape, ref, partial=False):
             diff = refVec - shapeVec
             diff = np.dot(diff, diff)
             row.append(diff)
-    rows, cols = linear_sum_assignment(G)
+    if G:
+        rows, cols = linear_sum_assignment(G)
+    else:
+        rows = cols = np.array([])
     assert (rows == list(range(len(rows)))).all()
     cost = matchingCost(G, cols)
     if cost >= 1e10:

@@ -122,14 +122,14 @@ with open("ids.txt") as f:
         if unicode not in cmap: continue
         build = fields[2].split('[')[0]
 
-        if any(isCircledNumber(u) for u in build):
+        if isCircledNumber(unicode):
             continue
 
         if unichar == build:
             bases.add(unicode)
             continue
 
-        if any(ord(b) not in cmap for b in build):
+        if any(ord(b) not in cmap and not isCircledNumber(b) for b in build):
             continue
 
         Hbuild[unicode] = tuple(ord(b) for b in build)
@@ -141,6 +141,7 @@ while changed:
     for H,build in list(Hbuild.items()):
         for u in build:
             if not (IdeoDescription.isIdeoDescription(u) or
+                    isCircledNumber(u) or
                     u in Hbuild or u in bases):
                 del Hbuild[H]
                 changed = True
@@ -178,6 +179,8 @@ def recurseBuild(build, t = Identity):
     if not IdeoDescription.isIdeoDescription(b):
         if b in bases:
             return [(t, b)], build
+        elif isCircledNumber(b):
+            return [], build
         else:
             return recurseBuild(Hbuild[b], t)[0], build
 
@@ -213,11 +216,11 @@ for H,build in list(Hbuild.items()):
         uShape = transformOutline(trans, shapes[w0][base])
         Rshape.extend(uShape)
 
-    if len(Hshape0) != len(Rshape):
+    if len(Hshape0) < len(Rshape):
         mismatch += 1
         continue
 
-    matchedOutline0,cost,assignment = matchOutline(Hshape0, Rshape)
+    matchedOutline0,cost,assignment = matchOutline(Hshape0, Rshape, partial=True)
     if not matchedOutline0:
         not_matched += 1
         continue
@@ -239,7 +242,14 @@ for H,build in list(Hbuild.items()):
 
         rShapes.append((base, rShape0, rShape1))
         alternates[base].append((rShape0, rShape1))
-    assert offset == len(Hshape0)
+
+    if offset < len(Hshape0):
+        otherStrokes0 = matchedOutline0[offset:]
+        otherStrokes1 = matchedOutline1[offset:]
+        structure0 = outlineStructure(otherStrokes0)
+
+        rShapes.append((structure0, otherStrokes0, otherStrokes1))
+        alternates[structure0].append((otherStrokes0, otherStrokes1))
 
     Hbuild2[H] = rShapes
 
@@ -376,7 +386,7 @@ for key,alts in alternates.items():
                 SVGs.append(commands)
 
     scale = .1
-    with open("fonts/han/%s/svg/U+%04X.svg" % (serif, key), "w") as fd:
+    with open("fonts/han/%s/svg/%s.svg" % (serif, "U+%04X" % key if type(key) == int else key), "w") as fd:
 
         cols = 16
         width = upem * (cols + 1)
@@ -504,7 +514,11 @@ componentNames = {}
 i = 0
 for key in learned.keys():
     # Give name to each learned item:
-    name = "uni%04X.comp" % key
+    if type(key) == int:
+        name = "uni%04X" % key
+    else:
+        name = "comp%d" % i
+        i += 1
     componentNames[key] = name
     components.append(name)
 
@@ -581,7 +595,10 @@ for H in matches:
         for contour in piece:
             rPen.value.extend(contour)
     rPen.replay(boundsPen)
-    b = [otRound(v) for v in boundsPen.bounds]
+    if boundsPen.bounds is not None:
+        b = [otRound(v) for v in boundsPen.bounds]
+    else:
+        b = 0, 0, 0, 0
     data = bytearray(struct.pack(">hhhhh", -2, b[0], b[1], b[2], b[3]))
     variation = []
     for componentKey,piece0,piece1 in Hbuild2[H]:
