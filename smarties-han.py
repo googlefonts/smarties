@@ -133,6 +133,7 @@ with open("ids.txt") as f:
                not isCircledNumber(b) and
                not IdeoDescription.isIdeoDescription(b)
                for b in build):
+            bases.add(unicode)
             continue
 
         Hbuild[unicode] = tuple(ord(b) for b in build)
