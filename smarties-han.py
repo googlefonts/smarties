@@ -146,7 +146,6 @@ while changed:
             if not (IdeoDescription.isIdeoDescription(u) or
                     isCircledNumber(u) or
                     u in Hbuild or u in bases):
-                print(hex(H), hex(u))
                 del Hbuild[H]
                 changed = True
                 break
@@ -257,7 +256,7 @@ for H,build in list(Hbuild.items()):
 
     Hbuild2[H] = rShapes
 
-print("matched: %d not matched: %d mismatch: %d." % (num_matched, not_matched, mismatch))
+print("%d matched; %d not matched; %d mismatched." % (num_matched, not_matched, mismatch))
 
 
 print("Learning.")

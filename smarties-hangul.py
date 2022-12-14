@@ -134,7 +134,7 @@ for S in range(SBase, SBase+SCount):
     else:
         not_matched += 1
 
-print("matched: %d not matched: %d contour count mismatch: %d " % (num_matched, not_matched, mismatch))
+print("%d matched; %d not matched; %d mismatched." % (num_matched, not_matched, mismatch))
 del alternates[None]
 
 
