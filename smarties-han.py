@@ -129,7 +129,10 @@ with open("ids.txt") as f:
             bases.add(unicode)
             continue
 
-        if any(ord(b) not in cmap and not isCircledNumber(b) for b in build):
+        if any(ord(b) not in cmap and
+               not isCircledNumber(b) and
+               not IdeoDescription.isIdeoDescription(b)
+               for b in build):
             continue
 
         Hbuild[unicode] = tuple(ord(b) for b in build)
@@ -143,6 +146,7 @@ while changed:
             if not (IdeoDescription.isIdeoDescription(u) or
                     isCircledNumber(u) or
                     u in Hbuild or u in bases):
+                print(hex(H), hex(u))
                 del Hbuild[H]
                 changed = True
                 break
