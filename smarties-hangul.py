@@ -490,7 +490,7 @@ for S in matches:
         numAxes = struct.pack(">B", len(coordinates))
         gid = struct.pack(">H", reverseGlyphMap[componentName])
         axisIndices = b''.join(struct.pack(">B", i) for i in range(len(coordinates)))
-        axisValues = b''.join(struct.pack(">H", otRound(v * 16384)) for v in coordinates)
+        axisValues = b''.join(struct.pack(">h", otRound(v * 16384)) for v in coordinates)
         translate = struct.pack(">hh", *position0)
 
         rec = flag + numAxes + gid + axisIndices + axisValues + translate
