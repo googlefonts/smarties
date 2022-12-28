@@ -11,6 +11,7 @@ from fontTools.pens.boundsPen import ControlBoundsPen
 from fontTools.varLib.interpolatable import PerContourPen
 from fontTools.ttLib.tables._g_l_y_f import Glyph
 from fontTools.ttLib.tables.TupleVariation import TupleVariation
+import numpy as np
 from collections import defaultdict
 from enum import IntEnum
 import re
