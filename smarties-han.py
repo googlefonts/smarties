@@ -305,7 +305,7 @@ for key,alts in alternates.items():
 
     reconst = np.round(u * np.diag(s) * v)
     error = reconst - mat
-    maxError = np.max(error)
+    maxError = np.max(np.abs(error))
     meanSqError = np.mean(np.square(error))
     #print("Num masters %d max error %d mean-squared error %g" % (k, maxError, meanSqError))
 
@@ -338,7 +338,7 @@ for key,alts in alternates.items():
     # Reconstruct again, from defaultMaster+deltas
     reconst = defaultMaster + u * deltas
     error = reconst - mat
-    maxError = np.max(error)
+    maxError = np.max(np.abs(error))
     meanSqError = np.mean(np.square(error))
     #print("Num masters %d max error %d mean-squared error %g" % (k+1, maxError, meanSqError))
 
