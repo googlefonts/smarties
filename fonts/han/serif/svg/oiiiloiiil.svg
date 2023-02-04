@@ -1,18 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="1700" height="300" xmlns="http://www.w3.org/2000/svg">
 <rect width="100%" height="100%" fill="white"/>
-<g fill="green" transform="translate(100 100) scale(0.1 -0.1)"><path d="M-0.0 0.0V182.0H-43.0V0.0ZM157.0 188.0H113.0V-3.0H157.0Z"/></g>
-<g fill="green" transform="translate(200 100) scale(0.1 -0.1)"><path d="M0.0 0.0V185.0H-125.0V0.0ZM162.0 185.0H39.0V0.0H162.0Z"/></g>
-<g fill="green" transform="translate(300 100) scale(0.1 -0.1)"><path d="M0.0 0.0V159.0H-37.0V0.0ZM140.0 164.0H102.0V-3.0H140.0Z"/></g>
-<g fill="green" transform="translate(400 100) scale(0.1 -0.1)"><path d="M0.0 0.0V161.0H-111.0V0.0ZM144.0 161.0H35.0V0.0H144.0Z"/></g>
-<g fill="green" transform="translate(500 100) scale(0.1 -0.1)"><path d="M-0.0 0.0V205.0H-49.0V0.0ZM115.0 206.0H65.0V0.0H115.0Z"/></g>
-<g fill="green" transform="translate(600 100) scale(0.1 -0.1)"><path d="M0.0 0.0V209.0H-105.0V0.0ZM131.0 209.0H26.0V0.0H131.0Z"/></g>
-<g fill="red" transform="translate(100 200) scale(0.1 -0.1)"><path d="M0.0 0.0V182.0H-43.0V0.0ZM157.0 188.0H113.0V-3.0H157.0Z"/></g>
-<g fill="black" opacity=".8" transform="translate(100 200) scale(0.1 -0.1)"><path d="M0.0 0.0V182.0H-43.0V0.0ZM157.0 188.0H113.0V-3.0H157.0Z"/></g>
-<g fill="red" transform="translate(200 200) scale(0.1 -0.1)"><path d="M0.0 0.0V185.0H-125.0V0.0ZM162.0 185.0H39.0V0.0H162.0Z"/></g>
-<g fill="black" opacity=".8" transform="translate(200 200) scale(0.1 -0.1)"><path d="M0.0 0.0V185.0H-125.0V0.0ZM162.0 185.0H39.0V0.0H162.0Z"/></g>
-<g fill="red" transform="translate(300 200) scale(0.1 -0.1)"><path d="M0.0 0.0V182.0H-43.0V0.0ZM98.0 182.0H54.0V0.0H98.0Z"/></g>
-<g fill="black" opacity=".8" transform="translate(300 200) scale(0.1 -0.1)"><path d="M0.0 0.0V182.0H-43.0V0.0ZM98.0 182.0H54.0V0.0H98.0Z"/></g>
-<g fill="red" transform="translate(400 200) scale(0.1 -0.1)"><path d="M0.0 0.0V185.0H-91.0V0.0ZM113.0 185.0H22.0V0.0H113.0Z"/></g>
-<g fill="black" opacity=".8" transform="translate(400 200) scale(0.1 -0.1)"><path d="M0.0 0.0V185.0H-91.0V0.0ZM113.0 185.0H22.0V0.0H113.0Z"/></g>
+<g fill="green" transform="translate(100 100) scale(0.1 -0.1)"><path d="M0.0 0.0V182.0H-43.0V0.0ZM107.0 182.0H66.0V0.0H107.0Z"/></g>
+<g fill="green" transform="translate(200 100) scale(0.1 -0.1)"><path d="M0.0 0.0V185.0H-84.0V0.0ZM104.0 185.0H20.0V0.0H104.0Z"/></g>
+<g fill="green" transform="translate(300 100) scale(0.1 -0.1)"><path d="M0.0 0.0V182.0H-43.0V0.0ZM107.0 182.0H66.0V0.0H107.0Z"/></g>
+<g fill="green" transform="translate(400 100) scale(0.1 -0.1)"><path d="M0.0 0.0V185.0H-84.0V0.0ZM104.0 185.0H20.0V0.0H104.0Z"/></g>
+<g fill="red" transform="translate(100 200) scale(0.1 -0.1)"><path d="M0.0 0.0V182.0H-43.0V0.0ZM107.0 182.0H66.0V0.0H107.0Z"/></g>
+<g fill="black" opacity=".8" transform="translate(100 200) scale(0.1 -0.1)"><path d="M0.0 0.0V182.0H-43.0V0.0ZM107.0 182.0H66.0V0.0H107.0Z"/></g>
+<g fill="red" transform="translate(200 200) scale(0.1 -0.1)"><path d="M0.0 0.0V185.0H-84.0V0.0ZM104.0 185.0H20.0V0.0H104.0Z"/></g>
+<g fill="black" opacity=".8" transform="translate(200 200) scale(0.1 -0.1)"><path d="M0.0 0.0V185.0H-84.0V0.0ZM104.0 185.0H20.0V0.0H104.0Z"/></g>
 </svg>

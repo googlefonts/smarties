@@ -460,6 +460,7 @@ fb.setupGlyf(glyphs)
 fb.setupFvar(axes, [])
 fb.setupGvar(variations)
 fb.font['avar'] = font['avar']
+fixLsb(fb)
 
 print("Saving %s" % file_name)
 fb.save(file_name)
@@ -506,6 +507,7 @@ fb.setupGlyf(glyphs)
 fb.setupFvar(axes, [])
 fb.setupGvar(variations)
 fb.font['avar'] = font['avar']
+fixLsb(fb)
 
 print("Saving %s" % file_name)
 fb.save(file_name)
@@ -672,6 +674,7 @@ for axis in fb.font['fvar'].axes:
 
 fb.setupGvar(variations)
 
+fixLsb(fb)
 fb.font.recalcBBoxes = False
 
 print("Saving %s" % file_name)

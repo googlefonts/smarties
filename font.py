@@ -84,3 +84,10 @@ def setupVariableFont(glyphSets, weights):
 
     axes = [(tag, weights[0], weights[0], weights[1], tag)]
     return glyphs, variations, axes
+
+def fixLsb(fb):
+    metrics = fb.font["hmtx"].metrics
+    glyf = fb.font["glyf"]
+    for glyphname in glyf.keys():
+        v = getattr(glyf.glyphs[glyphname], "xMin", 0)
+        metrics[glyphname] = (metrics[glyphname][0], v)
