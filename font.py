@@ -36,13 +36,9 @@ def createFontBuilder(font, family_name, style, chars, extraGlyphs=[]):
 def createTTGlyphPen():
     return TTGlyphPen(None, outputImpliedClosingLine=True)
 def createCu2QuPen(pen):
-    # reverse_direction=True was broken in
-    # https://github.com/fonttools/fonttools/pull/2995
-    return Cu2QuPen(pen, 1, reverse_direction=False)
+    return Cu2QuPen(pen, 1, reverse_direction=True)
 def createCu2QuMultiPen(pens):
-    # reverse_direction=True was broken in
-    # https://github.com/fonttools/fonttools/pull/2995
-    return Cu2QuMultiPen(pens, 1, reverse_direction=False)
+    return Cu2QuMultiPen(pens, 1, reverse_direction=True)
 
 def replayCommandsThroughCu2QuMultiPen(commands, cu2quPen):
     for ops in zip(*commands):

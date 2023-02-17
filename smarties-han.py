@@ -4,6 +4,7 @@ from font import *
 from fontTools.ttLib import TTFont
 from fontTools.misc.roundTools import otRound
 from fontTools.misc.transform import Transform, Identity
+from fontTools.pens.pointPen import PointToSegmentPen
 from fontTools.pens.recordingPen import RecordingPen
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.svgPathPen import main as svgMain
@@ -171,9 +172,10 @@ for weight in WEIGHTS:
 
     print("Gathering shapes.")
     for u in list(bases) + list(Hbuild) :
-        pen = PerContourPen(RecordingPen)
-        glyphset[cmap[u]].draw(pen)
-        shapes[weight][u] = [recPen.value for recPen in pen.value]
+        rpen = PerContourPen(RecordingPen)
+        pen = PointToSegmentPen(rpen, outputImpliedClosingLine=True)
+        glyphset[cmap[u]].drawPoints(pen)
+        shapes[weight][u] = [recPen.value for recPen in rpen.value]
 
 
 print("Gathering components.")
