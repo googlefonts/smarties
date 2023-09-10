@@ -4,7 +4,7 @@ from fontTools.pens.cu2quPen import Cu2QuPen, Cu2QuMultiPen
 from fontTools.ttLib.tables._g_l_y_f import GlyphCoordinates
 from fontTools.ttLib.tables.TupleVariation import TupleVariation
 
-def createFontBuilder(font, family_name, style, chars, extraGlyphs=[]):
+def createFontBuilder(font, family_name, style, chars, extraGlyphs=[], glyphDataFormat=0):
     upem = font['head'].unitsPerEm
     cmap = font['cmap'].getBestCmap()
     subset_cmap = {u:g for u,g in cmap.items() if u in chars}
@@ -20,7 +20,7 @@ def createFontBuilder(font, family_name, style, chars, extraGlyphs=[]):
     )
 
     fb = FontBuilder(upem, isTTF=True)
-    fb.setupHead(unitsPerEm=upem, created=font['head'].created, modified=font['head'].modified)
+    fb.setupHead(unitsPerEm=upem, created=font['head'].created, modified=font['head'].modified, glyphDataFormat=glyphDataFormat)
     fb.setupNameTable(nameStrings)
     fb.setupGlyphOrder(subset_glyphOrder)
     fb.setupCharacterMap(subset_cmap)

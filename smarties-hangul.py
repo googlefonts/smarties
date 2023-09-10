@@ -404,7 +404,7 @@ for unicode in learned.keys():
     componentNames[unicode] = name
     components.append(name)
 
-fb = createFontBuilder(font, FAMILY_NAME, style_name, matches, components)
+fb = createFontBuilder(font, FAMILY_NAME, style_name, matches, components, glyphDataFormat=1)
 
 variations = {}
 
